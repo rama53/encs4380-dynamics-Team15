@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Module 1: First-order step response</title>
+<style>
+:root{
+  --bg:#f5f7fa;--card:#fff;--ink:#18232f;--muted:#5d6b7a;--line:#dfe5ec;
+  --curve:#1d5fa8;--mark:#d4561f;--mark2:#14806a;--okbg:#dff3ec;--badbg:#fbe3dc;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){color-scheme:dark;--bg:#10161d;--card:#18212b;--ink:#e8eef4;--muted:#9aa9b8;--line:#2b3745;--curve:#6cb0f0;--mark:#ff8a5c;--mark2:#4fd0b0;--okbg:#14382f;--badbg:#4a2219}
+}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#10161d;--card:#18212b;--ink:#e8eef4;--muted:#9aa9b8;--line:#2b3745;--curve:#6cb0f0;--mark:#ff8a5c;--mark2:#4fd0b0;--okbg:#14382f;--badbg:#4a2219}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.5;padding:20px 16px 48px}
+main{max-width:860px;margin:0 auto}
+h1{font-size:clamp(22px,4vw,30px);margin:8px 0 4px}
+h2{font-size:18px;margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 20px;max-width:70ch}
+.formula{font-family:Georgia,"Times New Roman",serif;color:var(--ink)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-top:16px}
+.desc{color:var(--muted);margin:0 0 8px;max-width:70ch}
+.sliders{display:grid;grid-template-columns:1fr 1fr;gap:20px 28px}
+.sl label{display:flex;justify-content:space-between;align-items:baseline;font-weight:600;margin-bottom:6px}
+.sl output{font-variant-numeric:tabular-nums;color:var(--curve);font-size:1.15em}
+.sl small{display:block;color:var(--muted);margin-top:4px}
+input[type=range]{width:100%;accent-color:var(--curve);margin:0}
+button:focus-visible,input:focus-visible{outline:3px solid var(--mark);outline-offset:2px}
+canvas{display:block;width:100%;height:330px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 20px;padding:4px 2px;color:var(--muted);font-size:14px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+.read{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+.read div{background:var(--card);border:1px solid var(--line);border-top:4px solid var(--muted);border-radius:12px;padding:14px}
+.read span{display:block;font-size:16px;font-weight:700;line-height:1.25;margin-bottom:6px}
+.read b{display:block;font-size:20px;font-weight:600;font-variant-numeric:tabular-nums;margin-bottom:6px}
+.read small{display:block;color:var(--muted);font-size:14px;line-height:1.35}
+.read .a{border-top-color:var(--mark)}.read .a b{color:var(--mark)}
+.read .b{border-top-color:var(--mark2)}.read .b b{color:var(--mark2)}
+.read .c{border-top-color:var(--curve)}.read .c b{color:var(--curve)}
+.wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:480px}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+th{color:var(--muted);font-size:14px}
+.pill{display:inline-block;padding:2px 12px;border-radius:99px;font-weight:700}
+.pass{background:var(--okbg);color:var(--mark2)}.fail{background:var(--badbg);color:var(--mark)}
+@media(max-width:700px){.read{grid-template-columns:1fr}}
+@media(max-width:480px){.sliders{grid-template-columns:1fr}canvas{height:280px}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Module 1: First-order step response</h1>
+  <p class="sub">A thermometer-like sensor with gain K and time constant τ. <span class="formula">τẏ + y = Kx, G(s) = K/(τs + 1)</span>. The input is a unit step (A = 1).</p>
+
+  <div class="panel">
+    <div class="sliders">
+      <div class="sl">
+        <label for="tau">Time constant τ <output id="tauOut" for="tau">2.0 s</output></label>
+        <input id="tau" type="range" min="0.1" max="10" step="0.1" value="2">
+        <small>Bigger τ means a slower sensor.</small>
+      </div>
+      <div class="sl">
+        <label for="gain">Gain K <output id="gainOut" for="gain">1.0</output></label>
+        <input id="gain" type="range" min="0.1" max="5" step="0.1" value="1">
+        <small>K scales the output.</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Step response y(t) = KA(1 − e<sup>−t/τ</sup>)</h2>
+    <p class="desc">The input jumps from 0 to A = 1 at t = 0. The output climbs toward KA, reaching 63.2% at τ and 95% at 3τ.</p>
+    <canvas id="plot" role="img" aria-label="Sensor output versus time"></canvas>
+    <div class="legend">
+      <span><i style="background:var(--mark)"></i>t = τ: 63.2% of final</span>
+      <span><i style="background:var(--mark2)"></i>t = 3τ: 95% of final</span>
+    </div>
+  </div>
+
+  <section class="read" id="cards" aria-live="polite" aria-label="Key values"></section>
+
+  <div class="panel">
+    <h2>Validation check 1: first-order step</h2>
+    <p class="desc">The slides say y(τ) = 0.632·KA and y(3τ) = 0.95·KA. These values are computed from the formula with your current K and τ.</p>
+    <div class="wrap"><table>
+      <thead><tr><th>Check</th><th>Expected</th><th>Your value</th><th>Result</th></tr></thead>
+      <tbody id="vbody"></tbody>
+    </table></div>
+  </div>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const TMAX = 40, A = 1, FF = "system-ui, Arial, sans-serif";
+let tau = 2, K = 1, C = {};
+
+const stepY = t => K*A*(1 - Math.exp(-t/tau));
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+function chart(){
+  const cv = $("plot"), w = cv.clientWidth, h = cv.clientHeight, r = window.devicePixelRatio || 1;
+  cv.width = Math.round(w*r); cv.height = Math.round(h*r);
+  const c = cv.getContext("2d"); c.setTransform(r,0,0,r,0,0); c.clearRect(0,0,w,h);
+
+  const L=52,R=16,T=18,B=46,pw=w-L-R,ph=h-T-B;
+  const top = K*A, ymax = top*1.12;
+  const px = t => L + t/TMAX*pw, py = v => T + (1 - v/ymax)*ph;
+
+  c.font = "12px "+FF; c.lineWidth = 1;
+  for(const t of [0,10,20,30,40]){
+    c.strokeStyle=C.line; c.beginPath(); c.moveTo(px(t),T); c.lineTo(px(t),T+ph); c.stroke();
+    c.fillStyle=C.muted; c.textAlign="center"; c.fillText(t,px(t),T+ph+16);
+  }
+  for(let i=0;i<=5;i++){
+    const v = top*i/5;
+    c.strokeStyle=C.line; c.beginPath(); c.moveTo(L,py(v)); c.lineTo(L+pw,py(v)); c.stroke();
+    c.fillStyle=C.muted; c.textAlign="right"; c.fillText(+v.toFixed(2),L-8,py(v)+4);
+  }
+  c.fillStyle=C.ink; c.textAlign="center"; c.fillText("Time (s)",L+pw/2,T+ph+36);
+  c.save(); c.translate(12,T+ph/2); c.rotate(-Math.PI/2); c.fillText("Output y(t)",0,0); c.restore();
+
+  // Final value
+  c.strokeStyle=C.muted; c.lineWidth=2; c.setLineDash([6,5]);
+  c.beginPath(); c.moveTo(px(0),py(top)); c.lineTo(px(TMAX),py(top)); c.stroke(); c.setLineDash([]);
+  c.fillStyle=C.muted; c.textAlign="right";
+  c.fillText("final value KA = "+top.toFixed(2),L+pw-4,py(top)-6);
+
+  // Curve
+  c.strokeStyle=C.curve; c.lineWidth=3; c.beginPath();
+  for(let i=0;i<=800;i++){const t=i/800*TMAX; i?c.lineTo(px(t),py(stepY(t))):c.moveTo(px(t),py(stepY(t)));}
+  c.stroke();
+
+  // Markers with drop lines
+  function mark(t,col,label){
+    const x=px(t), y=py(stepY(t));
+    c.strokeStyle=col; c.lineWidth=1.5; c.setLineDash([4,4]);
+    c.beginPath(); c.moveTo(x,T+ph); c.lineTo(x,y); c.moveTo(L,y); c.lineTo(x,y); c.stroke(); c.setLineDash([]);
+    c.fillStyle=col; c.beginPath(); c.arc(x,y,5.5,0,7); c.fill();
+    c.font="600 12px "+FF; c.textAlign="left";
+    const tw=c.measureText(label).width, lx = x+10+tw > w-8 ? x-tw-20 : x+10;
+    c.fillText(label,lx,y+22);
+  }
+  mark(tau,C.m1,"t = τ: 63.2%");
+  mark(3*tau,C.m2,"t = 3τ: 95%");
+}
+
+function cards(){
+  $("cards").innerHTML = [
+    {k:"c",t:"Final value",v:(K*A).toFixed(2),n:"Where the output settles (KA)"},
+    {k:"a",t:"Output at t = τ ("+tau.toFixed(1)+" s)",v:stepY(tau).toFixed(3),n:"63.2% of the final value"},
+    {k:"b",t:"Output at t = 3τ ("+(3*tau).toFixed(1)+" s)",v:stepY(3*tau).toFixed(3),n:"95.0% of the final value"}
+  ].map(x=>`<div class="${x.k}"><span>${x.t}</span><b>${x.v}</b><small>${x.n}</small></div>`).join("");
+}
+
+function validation(){
+  const rows = [
+    ["y(τ) = 0.632·KA", 0.632*K*A, stepY(tau)],
+    ["y(3τ) = 0.95·KA", 0.95*K*A, stepY(3*tau)]
+  ];
+  $("vbody").innerHTML = rows.map(r=>{
+    const ok = Math.abs(r[2]-r[1]) <= 0.001*K*A;
+    return `<tr><td>${r[0]}</td><td>${r[1].toFixed(4)}</td><td>${r[2].toFixed(4)}</td><td><span class="pill ${ok?"pass":"fail"}">${ok?"Pass":"Fail"}</span></td></tr>`;
+  }).join("");
+}
+
+function draw(){
+  tau = +$("tau").value; K = +$("gain").value;
+  $("tauOut").textContent = tau.toFixed(1)+" s"; $("gainOut").textContent = K.toFixed(1);
+  C = {line:css("--line"),muted:css("--muted"),ink:css("--ink"),curve:css("--curve"),m1:css("--mark"),m2:css("--mark2")};
+  chart(); cards(); validation();
+}
+
+$("tau").addEventListener("input",draw);
+$("gain").addEventListener("input",draw);
+window.addEventListener("resize",draw);
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",draw);
+draw();
+</script>
+</body>
+</html>

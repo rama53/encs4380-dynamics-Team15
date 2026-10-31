@@ -23,7 +23,7 @@ An interactive web toolkit for exploring sensor dynamic characteristics, develop
 4. **Guess the Sensor Challenge:** Estimate hidden sensor parameters from response plots and check your predictions.
 
 ## AI Assistance
-1. **Module 1:**
+ **Module 1:**
  - Helping design the layout and the cards
  - Helping write the code
  - Explained some unclear details in the understanding of the homework

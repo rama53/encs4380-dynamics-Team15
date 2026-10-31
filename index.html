@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Module 1: First-order step response</title>
+<title>Module 1: First-order time response</title>
 <style>
 :root{
   --bg:#f5f7fa;--card:#fff;--ink:#18232f;--muted:#5d6b7a;--line:#dfe5ec;
@@ -24,11 +24,14 @@ h2{font-size:18px;margin:0 0 4px}
 .formula{font-family:Georgia,"Times New Roman",serif;color:var(--ink)}
 .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-top:16px}
 .desc{color:var(--muted);margin:0 0 8px;max-width:70ch}
-.sliders{display:grid;grid-template-columns:1fr 1fr;gap:20px 28px}
+.sliders{display:grid;grid-template-columns:1fr 1fr;gap:20px 28px;margin-top:16px}
 .sl label{display:flex;justify-content:space-between;align-items:baseline;font-weight:600;margin-bottom:6px}
 .sl output{font-variant-numeric:tabular-nums;color:var(--curve);font-size:1.15em}
 .sl small{display:block;color:var(--muted);margin-top:4px}
 input[type=range]{width:100%;accent-color:var(--curve);margin:0}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{font:inherit;font-weight:600;padding:9px 18px;border:0;background:var(--card);color:var(--muted);cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--curve);color:#fff}
 button:focus-visible,input:focus-visible{outline:3px solid var(--mark);outline-offset:2px}
 canvas{display:block;width:100%;height:330px}
 .legend{display:flex;flex-wrap:wrap;gap:6px 20px;padding:4px 2px;color:var(--muted);font-size:14px}
@@ -58,11 +61,15 @@ th{color:var(--muted);font-size:14px}
 </head>
 <body>
 <main>
-  <h1>Module 1: First-order step response</h1>
-  <p class="sub">A thermometer-like sensor with gain K and time constant τ. <span class="formula">τẏ + y = Kx, G(s) = K/(τs + 1)</span>. The input is a unit step (A = 1).</p>
+  <h1>Module 1: First-order time response</h1>
+  <p class="sub">A thermometer-like sensor with gain K and time constant τ. <span class="formula">τẏ + y = Kx, G(s) = K/(τs + 1)</span>. The input is a unit step (A = 1) or a unit ramp (slope a = 1).</p>
 
   <div class="panel">
-    <div class="sliders">
+    <div class="seg" role="group" aria-label="Input type">
+      <button id="bStep" aria-pressed="true">Step input</button>
+      <button id="bRamp" aria-pressed="false">Ramp input</button>
+    </div>
+    <div class="sliders" style="margin-top:18px">
       <div class="sl">
         <label for="tau">Time constant τ <output id="tauOut" for="tau">2.0 s</output></label>
         <input id="tau" type="range" min="0.1" max="10" step="0.1" value="2">
@@ -77,13 +84,10 @@ th{color:var(--muted);font-size:14px}
   </div>
 
   <div class="panel">
-    <h2>Step response y(t) = KA(1 − e<sup>−t/τ</sup>)</h2>
-    <p class="desc">The input jumps from 0 to A = 1 at t = 0. The output climbs toward KA, reaching 63.2% at τ and 95% at 3τ.</p>
+    <h2 id="t1">Step response y(t) = KA(1 − e<sup>−t/τ</sup>)</h2>
+    <p class="desc" id="d1"></p>
     <canvas id="plot1" role="img" aria-label="Sensor output versus time"></canvas>
-    <div class="legend">
-      <span><i style="background:var(--mark)"></i>t = τ: 63.2% of final</span>
-      <span><i style="background:var(--mark2)"></i>t = 3τ: 95% of final</span>
-    </div>
+    <div class="legend" id="lg1"></div>
   </div>
 
   <section class="read" id="cards" aria-live="polite" aria-label="Key values"></section>
@@ -97,12 +101,8 @@ th{color:var(--muted);font-size:14px}
   <div class="panel">
     <h2>Predict, then check</h2>
     <p class="desc">Choose an answer before touching the τ slider, then check it.</p>
-    <p id="pQ" style="font-weight:600;margin:6px 0">If you double τ, the time to reach 63.2% of the final value will…</p>
-    <div class="opts" role="radiogroup" aria-labelledby="pQ">
-      <label><input type="radio" name="pred" value="0"> stay the same</label>
-      <label><input type="radio" name="pred" value="1"> double</label>
-      <label><input type="radio" name="pred" value="2"> halve</label>
-    </div>
+    <p id="pQ" style="font-weight:600;margin:6px 0"></p>
+    <div class="opts" id="pOpts" role="radiogroup" aria-labelledby="pQ"></div>
     <button class="go" id="pGo">Check my prediction</button>
     <p id="pResult" aria-live="polite"></p>
   </div>
@@ -119,10 +119,11 @@ th{color:var(--muted);font-size:14px}
 
 <script>
 const $ = id => document.getElementById(id);
-const TMAX = 40, A = 1, FF = "system-ui, Arial, sans-serif";
-let tau = 2, K = 1, C = {};
+const TMAX = 40, A = 1, SLOPE = 1, FF = "system-ui, Arial, sans-serif";
+let mode = "step", tau = 2, K = 1, C = {};
 
 const stepY = t => K*A*(1 - Math.exp(-t/tau));
+const rampY = t => K*SLOPE*(t - tau*(1 - Math.exp(-t/tau)));
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
 function setup(cv){
@@ -160,26 +161,37 @@ function dot(c,g,t,v,col,label,dy){
   c.fillStyle=col; c.beginPath(); c.arc(x,y,5.5,0,7); c.fill();
   txt(c,g,label,x+10,y+dy,col);
 }
+function curve(c,g,f,col){
+  c.strokeStyle=col; c.lineWidth=3; c.beginPath();
+  for(let i=0;i<=800;i++){const t=i/800*TMAX; i?c.lineTo(g.px(t),g.py(f(t))):c.moveTo(g.px(t),g.py(f(t)));}
+  c.stroke();
+}
 
 function chart1(){
   const {c,w,h} = setup($("plot1"));
-  const top = K*A, ymax = top*1.12;
+  const top = mode==="step" ? K*A : K*SLOPE*TMAX, ymax = top*1.12;
   const g = geo(w,h,0,ymax);
   frame(c,g,[0,1,2,3,4,5].map(i=>top*i/5),"Output y(t)");
-
-  // Final value
-  c.strokeStyle=C.muted; c.lineWidth=2; c.setLineDash([6,5]);
-  c.beginPath(); c.moveTo(g.px(0),g.py(top)); c.lineTo(g.px(TMAX),g.py(top)); c.stroke(); c.setLineDash([]);
-  c.font="12px "+FF; c.fillStyle=C.muted; c.textAlign="right";
-  c.fillText("final value KA = "+top.toFixed(2),g.L+g.pw-4,g.py(top)-6);
-
-  // Curve
-  c.strokeStyle=C.curve; c.lineWidth=3; c.beginPath();
-  for(let i=0;i<=800;i++){const t=i/800*TMAX; i?c.lineTo(g.px(t),g.py(stepY(t))):c.moveTo(g.px(t),g.py(stepY(t)));}
-  c.stroke();
-
-  dot(c,g,tau,stepY(tau),C.m1,"t = τ: 63.2%",22);
-  dot(c,g,3*tau,stepY(3*tau),C.m2,"t = 3τ: 95%",22);
+  c.strokeStyle=C.muted; c.lineWidth=2; c.setLineDash([6,5]); c.beginPath();
+  if(mode==="step"){c.moveTo(g.px(0),g.py(top)); c.lineTo(g.px(TMAX),g.py(top));}
+  else {c.moveTo(g.px(0),g.py(0)); c.lineTo(g.px(TMAX),g.py(top));}
+  c.stroke(); c.setLineDash([]);
+  if(mode==="step"){
+    c.font="12px "+FF; c.fillStyle=C.muted; c.textAlign="right";
+    c.fillText("final value KA = "+top.toFixed(2),g.L+g.pw-4,g.py(top)-6);
+    curve(c,g,stepY,C.curve);
+    dot(c,g,tau,stepY(tau),C.m1,"t = τ: 63.2%",22);
+    dot(c,g,3*tau,stepY(3*tau),C.m2,"t = 3τ: 95%",22);
+  } else {
+    curve(c,g,rampY,C.curve);
+    const t0 = 0.8*TMAX, ya = rampY(t0), yi = K*SLOPE*t0, x0 = g.px(t0);
+    c.strokeStyle=C.m1; c.lineWidth=2.5;
+    c.beginPath(); c.moveTo(x0,g.py(ya)); c.lineTo(x0,g.py(yi)); c.stroke();
+    txt(c,g,"error ≈ Kaτ = "+(K*SLOPE*tau).toFixed(2),x0+8,(g.py(ya)+g.py(yi))/2+4,C.m1);
+    const tl = ya/(K*SLOPE);
+    c.strokeStyle=C.m2; c.beginPath(); c.moveTo(g.px(tl),g.py(ya)); c.lineTo(x0,g.py(ya)); c.stroke();
+    txt(c,g,"lag = τ = "+tau.toFixed(1)+" s",g.px(tl)-10,g.py(ya)-8,C.m2);
+  }
 }
 
 function chart2(){
@@ -196,12 +208,19 @@ function chart2(){
 }
 
 function cards(){
-  $("cards").innerHTML = [
+  const slope = {k:"d",t:"Slope of the log plot",v:(-1/tau).toFixed(2)+" per s",n:"Equals −1/τ"};
+  const list = mode==="step" ? [
     {k:"c",t:"Final value",v:(K*A).toFixed(2),n:"Where the output settles (KA)"},
     {k:"a",t:"Output at t = τ ("+tau.toFixed(1)+" s)",v:stepY(tau).toFixed(3),n:"63.2% of the final value"},
     {k:"b",t:"Output at t = 3τ ("+(3*tau).toFixed(1)+" s)",v:stepY(3*tau).toFixed(3),n:"95.0% of the final value"},
-    {k:"d",t:"Slope of the log plot",v:(-1/tau).toFixed(2)+" per s",n:"Equals −1/τ"}
-  ].map(x=>`<div class="${x.k}"><span>${x.t}</span><b>${x.v}</b><small>${x.n}</small></div>`).join("");
+    slope
+  ] : [
+    {k:"a",t:"Ramp lag",v:tau.toFixed(1)+" s",n:"The output trails the ideal by exactly τ"},
+    {k:"b",t:"Steady-state error",v:(K*SLOPE*tau).toFixed(2),n:"The gap Kaτ between ideal and actual"},
+    {k:"c",t:"Output slope",v:(K*SLOPE).toFixed(2)+" per s",n:"Same as the ideal ramp, only late"},
+    slope
+  ];
+  $("cards").innerHTML = list.map(x=>`<div class="${x.k}"><span>${x.t}</span><b>${x.v}</b><small>${x.n}</small></div>`).join("");
 }
 
 function validation(){
@@ -215,12 +234,38 @@ function validation(){
   }).join("");
 }
 
+const QS = {
+  step:{q:"If you double τ, the time to reach 63.2% of the final value will…",o:["stay the same","double","halve"],a:1,
+        e:"The 63.2% point sits at t = τ, so doubling τ doubles that time. Move the τ slider and watch the orange marker."},
+  ramp:{q:"If you double τ, the steady-state error of the ramp will…",o:["stay the same","double","halve"],a:1,
+        e:"The error is Kaτ, which grows in proportion to τ. Move the τ slider and watch the error bracket."}
+};
+function predict(){
+  const p = QS[mode];
+  $("pQ").textContent = p.q; $("pResult").textContent = "";
+  $("pOpts").innerHTML = p.o.map((o,i)=>`<label><input type="radio" name="pred" value="${i}"> ${o}</label>`).join("");
+}
 $("pGo").addEventListener("click",()=>{
-  const sel = document.querySelector("input[name=pred]:checked");
+  const p = QS[mode], sel = document.querySelector("input[name=pred]:checked");
   $("pResult").textContent = !sel ? "Pick an answer first." :
-    (+sel.value===1 ? "Correct. " : "Not quite. ") +
-    "The 63.2% point sits at t = τ, so doubling τ doubles that time. Move the τ slider and watch the orange marker.";
+    (+sel.value===p.a ? "Correct. " : "Not quite. ") + p.e;
 });
+
+function setMode(m){
+  mode = m;
+  $("bStep").setAttribute("aria-pressed", m==="step");
+  $("bRamp").setAttribute("aria-pressed", m==="ramp");
+  if(m==="step"){
+    $("t1").innerHTML = "Step response y(t) = KA(1 − e<sup>−t/τ</sup>)";
+    $("d1").textContent = "The input jumps from 0 to A = 1 at t = 0. The output climbs toward KA, reaching 63.2% at τ and 95% at 3τ.";
+    $("lg1").innerHTML = '<span><i style="background:var(--mark)"></i>t = τ: 63.2% of final</span><span><i style="background:var(--mark2)"></i>t = 3τ: 95% of final</span>';
+  } else {
+    $("t1").innerHTML = "Ramp response y(t) = Ka[t − τ(1 − e<sup>−t/τ</sup>)]";
+    $("d1").textContent = "The input rises steadily with slope a = 1. The dashed line is the ideal output K·a·t. The sensor follows it, but always late.";
+    $("lg1").innerHTML = '<span><i style="background:var(--mark2)"></i>Lag: the sensor is τ seconds behind</span><span><i style="background:var(--mark)"></i>Steady-state error: Kaτ</span>';
+  }
+  predict(); draw();
+}
 
 function draw(){
   tau = +$("tau").value; K = +$("gain").value;
@@ -229,11 +274,13 @@ function draw(){
   chart1(); chart2(); cards(); validation();
 }
 
+$("bStep").addEventListener("click",()=>setMode("step"));
+$("bRamp").addEventListener("click",()=>setMode("ramp"));
 $("tau").addEventListener("input",draw);
 $("gain").addEventListener("input",draw);
 window.addEventListener("resize",draw);
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change",draw);
-draw();
+setMode("step");
 </script>
 </body>
 </html>

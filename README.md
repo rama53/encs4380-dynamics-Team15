@@ -1,7 +1,6 @@
 # Dynamic Characteristics Toolkit — Team 15
 
-An interactive web toolkit for exploring sensor dynamic characteristics, developed for ENCS4380 at Birzeit University.
-
+An interactive web toolkit for exploring sensor dynamic characteristics, developed as a Homework for ENCS4380.
 ## Live Website
 
 [Open the Dynamic Characteristics Toolkit](https://rama53.github.io/encs4380-dynamics-Team15/)

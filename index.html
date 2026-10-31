@@ -33,7 +33,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--mark);outline-o
 canvas{display:block;width:100%;height:330px}
 .legend{display:flex;flex-wrap:wrap;gap:6px 20px;padding:4px 2px;color:var(--muted);font-size:14px}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
-.read{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+.read{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px}
 .read div{background:var(--card);border:1px solid var(--line);border-top:4px solid var(--muted);border-radius:12px;padding:14px}
 .read span{display:block;font-size:16px;font-weight:700;line-height:1.25;margin-bottom:6px}
 .read b{display:block;font-size:20px;font-weight:600;font-variant-numeric:tabular-nums;margin-bottom:6px}
@@ -41,13 +41,18 @@ canvas{display:block;width:100%;height:330px}
 .read .a{border-top-color:var(--mark)}.read .a b{color:var(--mark)}
 .read .b{border-top-color:var(--mark2)}.read .b b{color:var(--mark2)}
 .read .c{border-top-color:var(--curve)}.read .c b{color:var(--curve)}
+.opts{display:grid;gap:8px;margin:10px 0}
+.opts label{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer}
+.opts input{accent-color:var(--curve)}
+.go{font:inherit;font-weight:600;padding:9px 18px;border:0;border-radius:10px;background:var(--curve);color:#fff;cursor:pointer}
+#pResult{margin:12px 0 0;font-weight:600}
 .wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;min-width:480px}
 th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
 th{color:var(--muted);font-size:14px}
 .pill{display:inline-block;padding:2px 12px;border-radius:99px;font-weight:700}
 .pass{background:var(--okbg);color:var(--mark2)}.fail{background:var(--badbg);color:var(--mark)}
-@media(max-width:700px){.read{grid-template-columns:1fr}}
+@media(max-width:700px){.read{grid-template-columns:1fr 1fr}}
 @media(max-width:480px){.sliders{grid-template-columns:1fr}canvas{height:280px}}
 </style>
 </head>
@@ -74,7 +79,7 @@ th{color:var(--muted);font-size:14px}
   <div class="panel">
     <h2>Step response y(t) = KA(1 − e<sup>−t/τ</sup>)</h2>
     <p class="desc">The input jumps from 0 to A = 1 at t = 0. The output climbs toward KA, reaching 63.2% at τ and 95% at 3τ.</p>
-    <canvas id="plot" role="img" aria-label="Sensor output versus time"></canvas>
+    <canvas id="plot1" role="img" aria-label="Sensor output versus time"></canvas>
     <div class="legend">
       <span><i style="background:var(--mark)"></i>t = τ: 63.2% of final</span>
       <span><i style="background:var(--mark2)"></i>t = 3τ: 95% of final</span>
@@ -82,6 +87,25 @@ th{color:var(--muted);font-size:14px}
   </div>
 
   <section class="read" id="cards" aria-live="polite" aria-label="Key values"></section>
+
+  <div class="panel">
+    <h2>Error fraction on a log axis</h2>
+    <p class="desc">Plotting ln of the remaining error against time gives a straight line. Its slope is −1/τ, so you can measure τ from any curve.</p>
+    <canvas id="plot2" role="img" aria-label="Natural log of error fraction versus time"></canvas>
+  </div>
+
+  <div class="panel">
+    <h2>Predict, then check</h2>
+    <p class="desc">Choose an answer before touching the τ slider, then check it.</p>
+    <p id="pQ" style="font-weight:600;margin:6px 0">If you double τ, the time to reach 63.2% of the final value will…</p>
+    <div class="opts" role="radiogroup" aria-labelledby="pQ">
+      <label><input type="radio" name="pred" value="0"> stay the same</label>
+      <label><input type="radio" name="pred" value="1"> double</label>
+      <label><input type="radio" name="pred" value="2"> halve</label>
+    </div>
+    <button class="go" id="pGo">Check my prediction</button>
+    <p id="pResult" aria-live="polite"></p>
+  </div>
 
   <div class="panel">
     <h2>Validation check 1: first-order step</h2>
@@ -101,58 +125,82 @@ let tau = 2, K = 1, C = {};
 const stepY = t => K*A*(1 - Math.exp(-t/tau));
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
-function chart(){
-  const cv = $("plot"), w = cv.clientWidth, h = cv.clientHeight, r = window.devicePixelRatio || 1;
+function setup(cv){
+  const w = cv.clientWidth, h = cv.clientHeight, r = window.devicePixelRatio || 1;
   cv.width = Math.round(w*r); cv.height = Math.round(h*r);
   const c = cv.getContext("2d"); c.setTransform(r,0,0,r,0,0); c.clearRect(0,0,w,h);
-
+  return {c, w, h};
+}
+function geo(w,h,ymin,ymax){
   const L=52,R=16,T=18,B=46,pw=w-L-R,ph=h-T-B;
-  const top = K*A, ymax = top*1.12;
-  const px = t => L + t/TMAX*pw, py = v => T + (1 - v/ymax)*ph;
-
+  return {L,T,pw,ph,ymin,w,px:t=>L+t/TMAX*pw,py:v=>T+(ymax-v)/(ymax-ymin)*ph};
+}
+function frame(c,g,yt,yl){
   c.font = "12px "+FF; c.lineWidth = 1;
   for(const t of [0,10,20,30,40]){
-    c.strokeStyle=C.line; c.beginPath(); c.moveTo(px(t),T); c.lineTo(px(t),T+ph); c.stroke();
-    c.fillStyle=C.muted; c.textAlign="center"; c.fillText(t,px(t),T+ph+16);
+    c.strokeStyle=C.line; c.beginPath(); c.moveTo(g.px(t),g.T); c.lineTo(g.px(t),g.T+g.ph); c.stroke();
+    c.fillStyle=C.muted; c.textAlign="center"; c.fillText(t,g.px(t),g.T+g.ph+16);
   }
-  for(let i=0;i<=5;i++){
-    const v = top*i/5;
-    c.strokeStyle=C.line; c.beginPath(); c.moveTo(L,py(v)); c.lineTo(L+pw,py(v)); c.stroke();
-    c.fillStyle=C.muted; c.textAlign="right"; c.fillText(+v.toFixed(2),L-8,py(v)+4);
+  for(const v of yt){
+    c.strokeStyle=C.line; c.beginPath(); c.moveTo(g.L,g.py(v)); c.lineTo(g.L+g.pw,g.py(v)); c.stroke();
+    c.fillStyle=C.muted; c.textAlign="right"; c.fillText(+v.toFixed(2),g.L-8,g.py(v)+4);
   }
-  c.fillStyle=C.ink; c.textAlign="center"; c.fillText("Time (s)",L+pw/2,T+ph+36);
-  c.save(); c.translate(12,T+ph/2); c.rotate(-Math.PI/2); c.fillText("Output y(t)",0,0); c.restore();
+  c.fillStyle=C.ink; c.textAlign="center"; c.fillText("Time (s)",g.L+g.pw/2,g.T+g.ph+36);
+  c.save(); c.translate(12,g.T+g.ph/2); c.rotate(-Math.PI/2); c.fillText(yl,0,0); c.restore();
+}
+function txt(c,g,s,x,y,col){
+  c.font = "600 12px "+FF; c.fillStyle = col; c.textAlign = "left";
+  const tw = c.measureText(s).width;
+  c.fillText(s, x+tw > g.w-8 ? x-tw-20 : x, y);
+}
+function dot(c,g,t,v,col,label,dy){
+  const x=g.px(t), y=g.py(v);
+  c.strokeStyle=col; c.lineWidth=1.5; c.setLineDash([4,4]);
+  c.beginPath(); c.moveTo(x,g.py(g.ymin)); c.lineTo(x,y); c.moveTo(g.L,y); c.lineTo(x,y); c.stroke(); c.setLineDash([]);
+  c.fillStyle=col; c.beginPath(); c.arc(x,y,5.5,0,7); c.fill();
+  txt(c,g,label,x+10,y+dy,col);
+}
+
+function chart1(){
+  const {c,w,h} = setup($("plot1"));
+  const top = K*A, ymax = top*1.12;
+  const g = geo(w,h,0,ymax);
+  frame(c,g,[0,1,2,3,4,5].map(i=>top*i/5),"Output y(t)");
 
   // Final value
   c.strokeStyle=C.muted; c.lineWidth=2; c.setLineDash([6,5]);
-  c.beginPath(); c.moveTo(px(0),py(top)); c.lineTo(px(TMAX),py(top)); c.stroke(); c.setLineDash([]);
-  c.fillStyle=C.muted; c.textAlign="right";
-  c.fillText("final value KA = "+top.toFixed(2),L+pw-4,py(top)-6);
+  c.beginPath(); c.moveTo(g.px(0),g.py(top)); c.lineTo(g.px(TMAX),g.py(top)); c.stroke(); c.setLineDash([]);
+  c.font="12px "+FF; c.fillStyle=C.muted; c.textAlign="right";
+  c.fillText("final value KA = "+top.toFixed(2),g.L+g.pw-4,g.py(top)-6);
 
   // Curve
   c.strokeStyle=C.curve; c.lineWidth=3; c.beginPath();
-  for(let i=0;i<=800;i++){const t=i/800*TMAX; i?c.lineTo(px(t),py(stepY(t))):c.moveTo(px(t),py(stepY(t)));}
+  for(let i=0;i<=800;i++){const t=i/800*TMAX; i?c.lineTo(g.px(t),g.py(stepY(t))):c.moveTo(g.px(t),g.py(stepY(t)));}
   c.stroke();
 
-  // Markers with drop lines
-  function mark(t,col,label){
-    const x=px(t), y=py(stepY(t));
-    c.strokeStyle=col; c.lineWidth=1.5; c.setLineDash([4,4]);
-    c.beginPath(); c.moveTo(x,T+ph); c.lineTo(x,y); c.moveTo(L,y); c.lineTo(x,y); c.stroke(); c.setLineDash([]);
-    c.fillStyle=col; c.beginPath(); c.arc(x,y,5.5,0,7); c.fill();
-    c.font="600 12px "+FF; c.textAlign="left";
-    const tw=c.measureText(label).width, lx = x+10+tw > w-8 ? x-tw-20 : x+10;
-    c.fillText(label,lx,y+22);
-  }
-  mark(tau,C.m1,"t = τ: 63.2%");
-  mark(3*tau,C.m2,"t = 3τ: 95%");
+  dot(c,g,tau,stepY(tau),C.m1,"t = τ: 63.2%",22);
+  dot(c,g,3*tau,stepY(3*tau),C.m2,"t = 3τ: 95%",22);
+}
+
+function chart2(){
+  const {c,w,h} = setup($("plot2"));
+  const g = geo(w,h,-6,0.4);
+  frame(c,g,[0,-1,-2,-3,-4,-5,-6],"ln(error fraction)");
+  const tEnd = Math.min(TMAX,6*tau);
+  c.strokeStyle=C.curve; c.lineWidth=3; c.beginPath();
+  c.moveTo(g.px(0),g.py(0)); c.lineTo(g.px(tEnd),g.py(-tEnd/tau)); c.stroke();
+  dot(c,g,tau,-1,C.m1,"t = τ",-10);
+  dot(c,g,3*tau,-3,C.m2,"t = 3τ (95%)",-10);
+  c.font="600 13px "+FF; c.fillStyle=C.ink; c.textAlign="right";
+  c.fillText("slope = −1/τ = "+(-1/tau).toFixed(2)+" per s",g.L+g.pw-4,g.T+14);
 }
 
 function cards(){
   $("cards").innerHTML = [
     {k:"c",t:"Final value",v:(K*A).toFixed(2),n:"Where the output settles (KA)"},
     {k:"a",t:"Output at t = τ ("+tau.toFixed(1)+" s)",v:stepY(tau).toFixed(3),n:"63.2% of the final value"},
-    {k:"b",t:"Output at t = 3τ ("+(3*tau).toFixed(1)+" s)",v:stepY(3*tau).toFixed(3),n:"95.0% of the final value"}
+    {k:"b",t:"Output at t = 3τ ("+(3*tau).toFixed(1)+" s)",v:stepY(3*tau).toFixed(3),n:"95.0% of the final value"},
+    {k:"d",t:"Slope of the log plot",v:(-1/tau).toFixed(2)+" per s",n:"Equals −1/τ"}
   ].map(x=>`<div class="${x.k}"><span>${x.t}</span><b>${x.v}</b><small>${x.n}</small></div>`).join("");
 }
 
@@ -167,11 +215,18 @@ function validation(){
   }).join("");
 }
 
+$("pGo").addEventListener("click",()=>{
+  const sel = document.querySelector("input[name=pred]:checked");
+  $("pResult").textContent = !sel ? "Pick an answer first." :
+    (+sel.value===1 ? "Correct. " : "Not quite. ") +
+    "The 63.2% point sits at t = τ, so doubling τ doubles that time. Move the τ slider and watch the orange marker.";
+});
+
 function draw(){
   tau = +$("tau").value; K = +$("gain").value;
   $("tauOut").textContent = tau.toFixed(1)+" s"; $("gainOut").textContent = K.toFixed(1);
   C = {line:css("--line"),muted:css("--muted"),ink:css("--ink"),curve:css("--curve"),m1:css("--mark"),m2:css("--mark2")};
-  chart(); cards(); validation();
+  chart1(); chart2(); cards(); validation();
 }
 
 $("tau").addEventListener("input",draw);

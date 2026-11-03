@@ -308,12 +308,15 @@ frequencySlider.addEventListener("input", updateDynamicError);
 updateDynamicError();
 const prediction = document.getElementById("prediction");
 let hasChangedFrequency = false;
+let startingFrequency = Number(frequencySlider.value);
 prediction.addEventListener("change", function() {
     hasChangedFrequency = false;
+    startingFrequency = Number(frequencySlider.value);
     predictionResult.textContent = "";
 });
 frequencySlider.addEventListener("input", function() {
-    hasChangedFrequency = true;
+    hasChangedFrequency =
+        Number(frequencySlider.value) > startingFrequency;
 });
 const checkPrediction = document.getElementById("checkPrediction");
 const predictionResult = document.getElementById("predictionResult");

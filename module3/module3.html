@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Module 3: Second-order response</title>
+  <link rel="stylesheet" href="./module3.css">
+  <script src="./external-resources/plotly-basic-4.1.1.min.js" defer></script>
+  <script src="./module3.js" defer></script>
+</head>
+<body>
+  <main>
+    <h1>Module 3: Second-order response</h1>
+    <p class="sub">Explore the mass, damper, and spring that determine a second-order system's motion.</p>
+
+    <section class="panel" aria-labelledby="controls-heading">
+      <h2 id="controls-heading">Mass-spring-damper controls</h2>
+      <p class="desc">Change a physical parameter to recalculate the natural frequency and damping ratio.</p>
+
+      <div class="sliders">
+        <div class="slider">
+          <label for="mass">Mass m <output id="massOut" for="mass">1.0 kg</output></label>
+          <input id="mass" type="range" min="0.1" max="10" step="0.1" value="1" aria-describedby="mass-help">
+          <small id="mass-help">Mass resists acceleration. Hold the other sliders fixed to explore its effect.</small>
+        </div>
+
+        <div class="slider">
+          <label for="damping">Damping b <output id="dampingOut" for="damping">2.0 N·s/m</output></label>
+          <input id="damping" type="range" min="0" max="20" step="0.1" value="2" aria-describedby="damping-help">
+          <small id="damping-help">The damper opposes velocity. Increasing b increases the damping ratio.</small>
+        </div>
+
+        <div class="slider">
+          <label for="stiffness">Spring stiffness k <output id="stiffnessOut" for="stiffness">4.0 N/m</output></label>
+          <input id="stiffness" type="range" min="0.1" max="40" step="0.1" value="4" aria-describedby="stiffness-help">
+          <small id="stiffness-help">A stiffer spring produces more restoring force for the same displacement.</small>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="prediction-heading">
+      <h2 id="prediction-heading">Predict, then check</h2>
+      <p class="desc">Before moving a slider, predict how the percentage overshoot will change. Save your prediction, change just one slider above, then check.</p>
+      <form id="predictionForm">
+        <fieldset class="prediction-choices">
+          <legend>After my change, overshoot will be:</legend>
+          <label><input type="radio" name="prediction" value="higher" required> Higher</label>
+          <label><input type="radio" name="prediction" value="lower" required> Lower</label>
+          <label><input type="radio" name="prediction" value="same" required> The same</label>
+        </fieldset>
+        <div class="activity-actions">
+          <button type="submit">Save prediction</button>
+          <button id="checkPrediction" type="button" disabled>Check result</button>
+        </div>
+      </form>
+      <p id="predictionBaseline" class="plot-summary">No prediction saved yet.</p>
+      <p id="predictionHint" class="plot-summary" aria-live="polite"></p>
+      <p id="predictionResult" class="activity-feedback" role="status"></p>
+      <small class="desc">Compare the overshoot values rounded to three decimal places.</small>
+    </section>
+
+    <section class="results" aria-label="Calculated system parameters" aria-live="polite" aria-atomic="true">
+      <div class="panel">
+        <h2>Natural frequency ωₙ</h2>
+        <output class="value" id="omegaNOut" for="mass stiffness">2.000 rad/s</output>
+        <div class="formula">ωₙ = √(k / m)</div>
+        <p>The oscillation frequency the mass and spring would have without damping.</p>
+      </div>
+      <div class="panel">
+        <h2>Damping ratio ζ</h2>
+        <output class="value" id="zetaOut" for="mass damping stiffness">0.500</output>
+        <div class="formula">ζ = b / (2√(k × m))</div>
+        <p>Damping relative to the critical amount. This ratio has no units.</p>
+      </div>
+    </section>
+    <section class="panel response-panel" aria-labelledby="response-heading">
+      <div class="response-heading">
+        <h2 id="response-heading">Unit-force step response</h2>
+        <span id="responseCase" class="case-label">Underdamped</span>
+      </div>
+      <p class="desc">A 1 N force switches on at t = 0 and stays on. The mass starts at rest. Its final displacement is <output id="finalValueOut" for="stiffness">0.250 m</output>.</p>
+      <p class="formula model-equation">m ẍ + b ẋ + kx = F(t), with F(t) = 1 N for t ≥ 0</p>
+      <div class="examples" role="group" aria-label="Example damping cases">
+        <span>Examples (m = 1 kg, k = 4 N/m):</span>
+        <button type="button" data-damping="2">Underdamped</button>
+        <button type="button" data-damping="4">Critical</button>
+        <button type="button" data-damping="8">Overdamped</button>
+      </div>
+      <div id="responsePlot" class="plot" role="img" aria-label="Position versus time after a 1 N force step" aria-describedby="responseSummary"></div>
+      <div class="legend" aria-label="Plot legend">
+        <span><i class="swatch output-line" aria-hidden="true"></i>Position x(t)</span>
+        <span><i class="swatch final-line" aria-hidden="true"></i>Final position</span>
+        <span><i class="swatch band" aria-hidden="true"></i>±5% settling band</span>
+        <span><i class="swatch rise-dot" aria-hidden="true"></i>10% and 90% crossings</span>
+        <span><i class="swatch peak-dot" aria-hidden="true"></i>First peak</span>
+        <span><i class="swatch settling-line" aria-hidden="true"></i>Settling time</span>
+      </div>
+      <p id="responseSummary" class="plot-summary"></p>
+    </section>
+
+    <section class="measurements" aria-label="Response measurements" aria-live="polite" aria-atomic="true">
+      <div class="panel metric rise-metric">
+        <h2>Rise time</h2>
+        <output id="riseTimeOut" class="value" for="mass damping stiffness"></output>
+        <p>Time from the first 10% crossing to the first 90% crossing.</p>
+        <small id="riseDetails"></small>
+      </div>
+      <div class="panel metric peak-metric">
+        <h2>Peak time</h2>
+        <output id="peakTimeOut" class="value" for="mass damping stiffness"></output>
+        <p>Time of the first overshoot peak.</p>
+        <small id="peakDetails"></small>
+      </div>
+      <div class="panel metric overshoot-metric">
+        <h2>Overshoot</h2>
+        <output id="overshootOut" class="value" for="mass damping stiffness"></output>
+        <p>Maximum amount above the final position, as a percentage of that position.</p>
+      </div>
+      <div class="panel metric settling-metric">
+        <h2>Settling time</h2>
+        <output id="settlingTimeOut" class="value" for="mass damping stiffness"></output>
+        <p>Time after which the response stays within ±5% of the final position.</p>
+        <small id="settlingDetails"></small>
+      </div>
+    </section>
+    <section class="panel" aria-labelledby="poles-heading">
+      <h2 id="poles-heading">Poles and eigenvalues in the s-plane</h2>
+      <p class="desc">The poles solve ms² + bs + k = 0. The circles show the eigenvalues of A at the same locations. A negative real part means decay; a nonzero imaginary part means oscillation.</p>
+      <div id="polePlot" class="plot" role="img" aria-label="Transfer-function poles and state-matrix eigenvalues in the complex s-plane" aria-describedby="poleSummary"></div>
+      <div class="legend" aria-label="Pole plot legend">
+        <span><i class="swatch pole-mark" aria-hidden="true">×</i>Transfer-function pole</span>
+        <span><i class="swatch eigen-mark" aria-hidden="true"></i>Eigenvalue of A</span>
+      </div>
+      <div aria-live="polite" aria-atomic="true">
+        <table class="pole-table">
+          <thead><tr><th scope="col">Transfer-function poles</th><th scope="col">Eigenvalues of A</th></tr></thead>
+          <tbody>
+            <tr><td id="pole1Out"></td><td id="eigen1Out"></td></tr>
+            <tr><td id="pole2Out"></td><td id="eigen2Out"></td></tr>
+          </tbody>
+        </table>
+        <p id="eigenMatchOut" class="match-note"></p>
+        <p id="poleSummary" class="plot-summary"></p>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="state-heading">
+      <h2 id="state-heading">The same system in state-space form</h2>
+      <p class="desc">The two states are position x₁ = x and velocity x₂ = ẋ. The input F(t) is the same 1 N force step, and the output y is position.</p>
+      <p class="formula">ẋ = A x + B F(t), &nbsp; y = C x, &nbsp; D = 0</p>
+      <div class="matrix-row" aria-label="State-space matrices" aria-live="polite" aria-atomic="true">
+        <div class="matrix-block">
+          <span class="matrix-name">A =</span>
+          <table class="matrix" aria-label="A, the state matrix"><tbody>
+            <tr><td>0</td><td>1</td></tr>
+            <tr><td id="a21Out"></td><td id="a22Out"></td></tr>
+          </tbody></table>
+        </div>
+        <div class="matrix-block">
+          <span class="matrix-name">B =</span>
+          <table class="matrix" aria-label="B, the input matrix"><tbody>
+            <tr><td>0</td></tr><tr><td id="b2Out"></td></tr>
+          </tbody></table>
+        </div>
+        <div class="matrix-block">
+          <span class="matrix-name">C =</span>
+          <table class="matrix" aria-label="C, the output matrix"><tbody>
+            <tr><td>1</td><td>0</td></tr>
+          </tbody></table>
+        </div>
+      </div>
+      <div class="state-equations" aria-live="polite" aria-atomic="true">
+        <p class="formula">ẋ₁ = x₂</p>
+        <p class="formula" id="accelerationEquation"></p>
+      </div>
+      <p class="desc state-explanation">The first row updates position from velocity. The second row updates velocity from the spring, damper, and applied force. The eigenvalues above are calculated from this A matrix.</p>
+    </section>
+
+    <section class="panel" aria-labelledby="phase-heading">
+      <h2 id="phase-heading">Position–velocity phase plane</h2>
+      <p class="desc">Each point shows position and velocity at one instant during the step response. Arrows follow increasing time. The resting point is (F/k, 0), rather than the original position.</p>
+      <div id="phasePlot" class="plot" role="img" aria-label="Velocity against position during the force-step response" aria-describedby="phaseSummary"></div>
+      <div class="legend" aria-label="Phase-plane legend">
+        <span><i class="swatch output-line" aria-hidden="true"></i>State trajectory</span>
+        <span><i class="swatch start-mark" aria-hidden="true"></i>Start (0, 0)</span>
+        <span><i class="swatch equilibrium-mark" aria-hidden="true"></i>Resting point (F/k, 0)</span>
+      </div>
+      <p id="phaseSummary" class="plot-summary" aria-live="polite"></p>
+    </section>
+    <section class="panel" aria-labelledby="validation-heading">
+      <h2 id="validation-heading">Validation checks</h2>
+      <p class="desc">These fixed reference cases run when the page loads, independently of the sliders. The calculated values are compared with the rounded values from the homework.</p>
+      <div class="table-scroll" role="region" aria-label="Validation results; scroll horizontally on small screens" tabindex="0">
+        <table class="validation-table">
+          <caption>Module 3: homework checks 4–6</caption>
+          <thead><tr><th scope="col">Check</th><th scope="col">Expected</th><th scope="col">Calculated</th><th scope="col">Result</th></tr></thead>
+          <tbody id="validationBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

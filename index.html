@@ -16,6 +16,7 @@
 :root[data-theme="dark"]{color-scheme:dark;--bg:#10161d;--card:#18212b;--ink:#e8eef4;--muted:#9aa9b8;--line:#2b3745;--curve:#6cb0f0;--mark:#ff8a5c;--mark2:#4fd0b0;--okbg:#14382f;--badbg:#4a2219}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.5;padding:20px 16px 48px}
 main{max-width:860px;margin:0 auto}
 h1{font-size:clamp(22px,4vw,30px);margin:8px 0 4px}
@@ -29,11 +30,16 @@ h2{font-size:18px;margin:0 0 4px}
 .sl output{font-variant-numeric:tabular-nums;color:var(--curve);font-size:1.15em}
 .sl small{display:block;color:var(--muted);margin-top:4px}
 input[type=range]{width:100%;accent-color:var(--curve);margin:0}
+input[type=range]:disabled{opacity:.45;cursor:not-allowed}
+.lockmsg{color:var(--mark);font-weight:600;margin:12px 0 0;min-height:1.5em}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
 .seg button{font:inherit;font-weight:600;padding:9px 18px;border:0;background:var(--card);color:var(--muted);cursor:pointer}
 .seg button[aria-pressed=true]{background:var(--curve);color:#fff}
 button:focus-visible,input:focus-visible{outline:3px solid var(--mark);outline-offset:2px}
 canvas{display:block;width:100%;height:330px}
+.chk{display:flex;gap:8px;align-items:center;margin:4px 0 8px;font-weight:600;cursor:pointer}
+.chk input{accent-color:var(--curve)}
+#odeNote{color:var(--muted);font-size:14px;margin:4px 2px 0;font-variant-numeric:tabular-nums}
 .legend{display:flex;flex-wrap:wrap;gap:6px 20px;padding:4px 2px;color:var(--muted);font-size:14px}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
 .read{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px}
@@ -47,10 +53,15 @@ canvas{display:block;width:100%;height:330px}
 .opts{display:grid;gap:8px;margin:10px 0}
 .opts label{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer}
 .opts input{accent-color:var(--curve)}
+.row{display:flex;flex-wrap:wrap;gap:10px}
 .go{font:inherit;font-weight:600;padding:9px 18px;border:0;border-radius:10px;background:var(--curve);color:#fff;cursor:pointer}
+.go[disabled]{opacity:.5;cursor:not-allowed}
+.sec{font:inherit;font-weight:600;padding:9px 18px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);cursor:pointer}
 #pResult{margin:12px 0 0;font-weight:600}
+.live{margin-top:12px;padding:12px;border:1px dashed var(--line);border-radius:10px;font-variant-numeric:tabular-nums}
+.live div+div{margin-top:4px}
 .wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;min-width:480px}
+table{width:100%;border-collapse:collapse;min-width:520px}
 th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
 th{color:var(--muted);font-size:14px}
 .pill{display:inline-block;padding:2px 12px;border-radius:99px;font-weight:700}
@@ -81,35 +92,44 @@ th{color:var(--muted);font-size:14px}
         <small>K scales the output.</small>
       </div>
     </div>
+    <p class="lockmsg" id="lockMsg" aria-live="polite"></p>
   </div>
 
   <div class="panel">
     <h2 id="t1">Step response y(t) = KA(1 − e<sup>−t/τ</sup>)</h2>
     <p class="desc" id="d1"></p>
+    <label class="chk"><input type="checkbox" id="showOde" checked> Overlay my RK4 numerical solution</label>
     <canvas id="plot1" role="img" aria-label="Sensor output versus time"></canvas>
     <div class="legend" id="lg1"></div>
+    <p id="odeNote"></p>
   </div>
 
   <section class="read" id="cards" aria-live="polite" aria-label="Key values"></section>
 
   <div class="panel">
-    <h2>Error fraction on a log axis</h2>
-    <p class="desc">Plotting ln of the remaining error against time gives a straight line. Its slope is −1/τ, so you can measure τ from any curve.</p>
-    <canvas id="plot2" role="img" aria-label="Natural log of error fraction versus time"></canvas>
+    <h2>Step error fraction on a log axis</h2>
+    <p class="desc">This plot always uses the step response, in both modes. It shows ln(1 − y/KA), computed point by point from the response curve. The points fall on a straight line whose slope is −1/τ, so you can measure τ from any curve.</p>
+    <canvas id="plot2" role="img" aria-label="Natural log of the step error fraction versus time. Always the step response, in both modes."></canvas>
   </div>
 
-  <div class="panel">
+  <div class="panel" id="predict">
     <h2>Predict, then check</h2>
-    <p class="desc">Choose an answer before touching the τ slider, then check it.</p>
+    <p class="desc">The slider this question is about stays locked until you commit to a prediction. After you check, move the slider and watch the before and after values.</p>
+    <p class="desc" id="pQn"></p>
     <p id="pQ" style="font-weight:600;margin:6px 0"></p>
     <div class="opts" id="pOpts" role="radiogroup" aria-labelledby="pQ"></div>
-    <button class="go" id="pGo">Check my prediction</button>
+    <div class="row">
+      <button class="go" id="pGo">Check my prediction</button>
+      <button class="sec" id="pNext" hidden>Next question</button>
+      <button class="sec" id="pSkip">Skip and explore</button>
+    </div>
     <p id="pResult" aria-live="polite"></p>
+    <div class="live" id="pLive" hidden></div>
   </div>
 
-  <div class="panel">
+  <div class="panel" id="vPanel">
     <h2>Validation check 1: first-order step</h2>
-    <p class="desc">The slides say y(τ) = 0.632·KA and y(3τ) = 0.95·KA. These values are computed from the formula with your current K and τ.</p>
+    <p class="desc">The slides say y(τ) = 0.632·KA and y(3τ) = 0.95·KA for a first-order step. "Your value" comes from a numerical RK4 solution of τẏ + y = Kx with your current K and τ, not from the plotting formula. It does not depend on the input mode.</p>
     <div class="wrap"><table>
       <thead><tr><th>Check</th><th>Expected</th><th>Your value</th><th>Result</th></tr></thead>
       <tbody id="vbody"></tbody>
@@ -119,12 +139,34 @@ th{color:var(--muted);font-size:14px}
 
 <script>
 const $ = id => document.getElementById(id);
-const TMAX = 40, A = 1, SLOPE = 1, FF = "system-ui, Arial, sans-serif";
-let mode = "step", tau = 2, K = 1, C = {};
+const A = 1, SLOPE = 1, FF = "system-ui, Arial, sans-serif";
+let mode = "step", tau = 2, K = 1, C = {}, TMAX = 14, T2 = 14;
 
 const stepY = t => K*A*(1 - Math.exp(-t/tau));
 const rampY = t => K*SLOPE*(t - tau*(1 - Math.exp(-t/tau)));
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+/* Round a time span up to 1, 2, 2.5, 5 or 10 times a power of ten */
+function niceCeil(x){
+  const p = Math.pow(10, Math.floor(Math.log10(x)));
+  for(const m of [1,2,2.5,5,10]) if(m*p >= x - 1e-12) return m*p;
+  return 10*p;
+}
+function linreg(xs, ys){
+  const n = xs.length; let sx=0, sy=0, sxx=0, sxy=0;
+  for(let i=0;i<n;i++){sx+=xs[i]; sy+=ys[i]; sxx+=xs[i]*xs[i]; sxy+=xs[i]*ys[i];}
+  return (n*sxy - sx*sy) / (n*sxx - sx*sx);
+}
+/* RK4 solution of tau*y' + y = K*x(t), y(0) = 0 */
+function rk4(inp, T, N){
+  const dt = T/N, f = (t,y) => (K*inp(t) - y)/tau, ys = [0];
+  let y = 0;
+  for(let i=0;i<N;i++){
+    const t = i*dt, k1 = f(t,y), k2 = f(t+dt/2,y+dt/2*k1), k3 = f(t+dt/2,y+dt/2*k2), k4 = f(t+dt,y+dt*k3);
+    y += dt/6*(k1+2*k2+2*k3+k4); ys.push(y);
+  }
+  return {dt, ys};
+}
 
 function setup(cv){
   const w = cv.clientWidth, h = cv.clientHeight, r = window.devicePixelRatio || 1;
@@ -132,15 +174,16 @@ function setup(cv){
   const c = cv.getContext("2d"); c.setTransform(r,0,0,r,0,0); c.clearRect(0,0,w,h);
   return {c, w, h};
 }
-function geo(w,h,ymin,ymax){
+function geo(w,h,ymin,ymax,tmax){
   const L=52,R=16,T=18,B=46,pw=w-L-R,ph=h-T-B;
-  return {L,T,pw,ph,ymin,w,px:t=>L+t/TMAX*pw,py:v=>T+(ymax-v)/(ymax-ymin)*ph};
+  return {L,T,pw,ph,ymin,w,tmax,px:t=>L+t/tmax*pw,py:v=>T+(ymax-v)/(ymax-ymin)*ph};
 }
 function frame(c,g,yt,yl){
   c.font = "12px "+FF; c.lineWidth = 1;
-  for(const t of [0,10,20,30,40]){
+  for(let i=0;i<=4;i++){
+    const t = i*g.tmax/4;
     c.strokeStyle=C.line; c.beginPath(); c.moveTo(g.px(t),g.T); c.lineTo(g.px(t),g.T+g.ph); c.stroke();
-    c.fillStyle=C.muted; c.textAlign="center"; c.fillText(t,g.px(t),g.T+g.ph+16);
+    c.fillStyle=C.muted; c.textAlign="center"; c.fillText(+t.toFixed(2),g.px(t),g.T+g.ph+16);
   }
   for(const v of yt){
     c.strokeStyle=C.line; c.beginPath(); c.moveTo(g.L,g.py(v)); c.lineTo(g.L+g.pw,g.py(v)); c.stroke();
@@ -163,14 +206,30 @@ function dot(c,g,t,v,col,label,dy){
 }
 function curve(c,g,f,col){
   c.strokeStyle=col; c.lineWidth=3; c.beginPath();
-  for(let i=0;i<=800;i++){const t=i/800*TMAX; i?c.lineTo(g.px(t),g.py(f(t))):c.moveTo(g.px(t),g.py(f(t)));}
+  for(let i=0;i<=800;i++){const t=i/800*g.tmax; i?c.lineTo(g.px(t),g.py(f(t))):c.moveTo(g.px(t),g.py(f(t)));}
   c.stroke();
+}
+
+/* Plot the RK4 solution of tau*y' + y = K*x(t) as hollow circles on top of the closed-form curve */
+function overlayOde(c,g){
+  $("odeNote").textContent = "";
+  if(!$("showOde").checked) return;
+  const f = mode==="step" ? stepY : rampY, inp = mode==="step" ? (t=>A) : (t=>SLOPE*t);
+  const N = 48, sol = rk4(inp, TMAX, N);
+  let gap = 0;
+  c.strokeStyle = C.ink; c.lineWidth = 2;
+  for(let i=0;i<=N;i++){
+    const t = i*sol.dt;
+    gap = Math.max(gap, Math.abs(sol.ys[i] - f(t)));
+    c.beginPath(); c.arc(g.px(t), g.py(sol.ys[i]), 4, 0, 7); c.stroke();
+  }
+  $("odeNote").textContent = "RK4 with " + N + " steps (dt = " + sol.dt.toFixed(3) + " s). Largest gap from the closed-form curve: " + gap.toExponential(2) + ".";
 }
 
 function chart1(){
   const {c,w,h} = setup($("plot1"));
   const top = mode==="step" ? K*A : K*SLOPE*TMAX, ymax = top*1.12;
-  const g = geo(w,h,0,ymax);
+  const g = geo(w,h,0,ymax,TMAX);
   frame(c,g,[0,1,2,3,4,5].map(i=>top*i/5),"Output y(t)");
   c.strokeStyle=C.muted; c.lineWidth=2; c.setLineDash([6,5]); c.beginPath();
   if(mode==="step"){c.moveTo(g.px(0),g.py(top)); c.lineTo(g.px(TMAX),g.py(top));}
@@ -184,27 +243,38 @@ function chart1(){
     dot(c,g,3*tau,stepY(3*tau),C.m2,"t = 3τ: 95%",22);
   } else {
     curve(c,g,rampY,C.curve);
+    txt(c,g,"dashed: ideal output K·a·t (input ramp × K)",g.px(0.04*TMAX),g.py(top*0.85),C.muted);
     const t0 = 0.8*TMAX, ya = rampY(t0), yi = K*SLOPE*t0, x0 = g.px(t0);
     c.strokeStyle=C.m1; c.lineWidth=2.5;
     c.beginPath(); c.moveTo(x0,g.py(ya)); c.lineTo(x0,g.py(yi)); c.stroke();
     txt(c,g,"error ≈ Kaτ = "+(K*SLOPE*tau).toFixed(2),x0+8,(g.py(ya)+g.py(yi))/2+4,C.m1);
     const tl = ya/(K*SLOPE);
     c.strokeStyle=C.m2; c.beginPath(); c.moveTo(g.px(tl),g.py(ya)); c.lineTo(x0,g.py(ya)); c.stroke();
-    txt(c,g,"lag = τ = "+tau.toFixed(1)+" s",g.px(tl)-10,g.py(ya)-8,C.m2);
+    txt(c,g,"lag ≈ τ = "+tau.toFixed(1)+" s",g.px(tl)-10,g.py(ya)-8,C.m2);
   }
+  overlayOde(c,g);
 }
 
+/* Log plot: ln(error fraction) computed point by point from the step response */
 function chart2(){
   const {c,w,h} = setup($("plot2"));
-  const g = geo(w,h,-6,0.4);
+  const g = geo(w,h,-6.5,0.4,T2);
   frame(c,g,[0,-1,-2,-3,-4,-5,-6],"ln(error fraction)");
-  const tEnd = Math.min(TMAX,6*tau);
+  const tEnd = 6*tau, N = 300, ts = [], ls = [];
+  for(let i=0;i<=N;i++){
+    const t = i/N*tEnd;
+    ts.push(t); ls.push(Math.log(1 - stepY(t)/(K*A)));
+  }
   c.strokeStyle=C.curve; c.lineWidth=3; c.beginPath();
-  c.moveTo(g.px(0),g.py(0)); c.lineTo(g.px(tEnd),g.py(-tEnd/tau)); c.stroke();
-  dot(c,g,tau,-1,C.m1,"t = τ",-10);
-  dot(c,g,3*tau,-3,C.m2,"t = 3τ (95%)",-10);
+  ts.forEach((t,i)=>{ i ? c.lineTo(g.px(t),g.py(ls[i])) : c.moveTo(g.px(t),g.py(ls[i])); });
+  c.stroke();
+  const lnAt = t => Math.log(1 - stepY(t)/(K*A));
+  dot(c,g,tau,lnAt(tau),C.m1,"t = τ",-10);
+  dot(c,g,3*tau,lnAt(3*tau),C.m2,"t = 3τ (95%)",-10);
+  const slope = linreg(ts, ls);
   c.font="600 13px "+FF; c.fillStyle=C.ink; c.textAlign="right";
-  c.fillText("slope = −1/τ = "+(-1/tau).toFixed(2)+" per s",g.L+g.pw-4,g.T+14);
+  c.fillText("expected slope −1/τ = "+(-1/tau).toFixed(3)+" per s",g.L+g.pw-4,g.T+14);
+  c.fillText("measured from the points = "+slope.toFixed(3)+" per s",g.L+g.pw-4,g.T+32);
 }
 
 function cards(){
@@ -215,18 +285,21 @@ function cards(){
     {k:"b",t:"Output at t = 3τ ("+(3*tau).toFixed(1)+" s)",v:stepY(3*tau).toFixed(3),n:"95.0% of the final value"},
     slope
   ] : [
-    {k:"a",t:"Ramp lag",v:tau.toFixed(1)+" s",n:"The output trails the ideal by exactly τ"},
-    {k:"b",t:"Steady-state error",v:(K*SLOPE*tau).toFixed(2),n:"The gap Kaτ between ideal and actual"},
+    {k:"b",t:"Ramp lag",v:tau.toFixed(1)+" s",n:"Approaches τ once the start-up transient has died out"},
+    {k:"a",t:"Steady-state error",v:(K*SLOPE*tau).toFixed(2),n:"Approaches Kaτ, the gap between ideal and actual"},
     {k:"c",t:"Output slope",v:(K*SLOPE).toFixed(2)+" per s",n:"Same as the ideal ramp, only late"},
     slope
   ];
   $("cards").innerHTML = list.map(x=>`<div class="${x.k}"><span>${x.t}</span><b>${x.v}</b><small>${x.n}</small></div>`).join("");
 }
 
+/* Validation check 1: values come from an RK4 solution of the ODE, not from stepY */
 function validation(){
+  const st = rk4(t => A, 10*tau, 2000);
+  const at = t => st.ys[Math.round(t/st.dt)];
   const rows = [
-    ["y(τ) = 0.632·KA", 0.632*K*A, stepY(tau)],
-    ["y(3τ) = 0.95·KA", 0.95*K*A, stepY(3*tau)]
+    ["y(τ) = 0.632·KA",  0.632*K*A, at(tau)],
+    ["y(3τ) = 0.95·KA",  0.95*K*A,  at(3*tau)]
   ];
   $("vbody").innerHTML = rows.map(r=>{
     const ok = Math.abs(r[2]-r[1]) <= 0.001*K*A;
@@ -234,21 +307,75 @@ function validation(){
   }).join("");
 }
 
+/* Predict, then check: several questions per mode, the relevant slider stays locked until checked */
 const QS = {
-  step:{q:"If you double τ, the time to reach 63.2% of the final value will…",o:["stay the same","double","halve"],a:1,
-        e:"The 63.2% point sits at t = τ, so doubling τ doubles that time. Move the τ slider and watch the orange marker."},
-  ramp:{q:"If you double τ, the steady-state error of the ramp will…",o:["stay the same","double","halve"],a:1,
-        e:"The error is Kaτ, which grows in proportion to τ. Move the τ slider and watch the error bracket."}
+  step:[
+    {slider:"tau", q:"If you double τ, the time to reach 63.2% of the final value will…",
+     o:["stay the same","double","halve"], a:1,
+     e:"The 63.2% point sits at t = τ, so doubling τ doubles that time.",
+     obs:()=>[["Time to reach 63.2%", tau.toFixed(1)+" s"]]},
+    {slider:"gain", q:"If you double K (τ unchanged), the time to reach 63.2% of the final value will…",
+     o:["stay the same","double","halve"], a:0,
+     e:"The 63.2% point is still at t = τ. K only scales the final value KA, not the speed.",
+     obs:()=>[["Time to reach 63.2%", tau.toFixed(1)+" s"],["Final value KA",(K*A).toFixed(2)]]},
+    {slider:"tau", q:"If you make τ larger, the fraction of the final value reached at t = 3τ will…",
+     o:["stay at about 95%","rise above 95%","fall below 95%"], a:0,
+     e:"Time is measured in units of τ here, so y(3τ)/KA = 1 − e⁻³ ≈ 95% for every τ.",
+     obs:()=>[["Output at 3τ, as % of final",(100*stepY(3*tau)/(K*A)).toFixed(1)+" %"]]}
+  ],
+  ramp:[
+    {slider:"tau", q:"If you double τ, the steady-state error of the ramp will…",
+     o:["stay the same","double","halve"], a:1,
+     e:"The error is Kaτ, which grows in proportion to τ.",
+     obs:()=>[["Steady-state error Kaτ",(K*SLOPE*tau).toFixed(2)]]},
+    {slider:"gain", q:"If you double K (τ unchanged), the ramp lag in seconds will…",
+     o:["stay the same","double","halve"], a:0,
+     e:"The lag is τ, which does not depend on K. The error Kaτ does double, because the whole output is scaled by K.",
+     obs:()=>[["Lag",tau.toFixed(1)+" s"],["Steady-state error Kaτ",(K*SLOPE*tau).toFixed(2)]]},
+    {slider:"tau", q:"If you double τ, the slope of the output ramp (once settled) will…",
+     o:["stay the same","double","halve"], a:0,
+     e:"The output follows the same slope K·a as the ideal ramp. Only the delay and error change.",
+     obs:()=>[["Output slope K·a",(K*SLOPE).toFixed(2)+" per s"]]}
+  ]
 };
+let qi = {step:0, ramp:0}, checked = false, baseline = null;
+
+function lock(slider){
+  $("tau").disabled = slider === "tau";
+  $("gain").disabled = slider === "gain";
+  $("lockMsg").textContent = slider
+    ? "The " + (slider==="tau" ? "τ" : "K") + " slider is locked until you make a prediction in the box below."
+    : "";
+}
+function renderLive(){
+  const box = $("pLive");
+  if(!checked){ box.hidden = true; return; }
+  const now = QS[mode][qi[mode]].obs();
+  box.hidden = false;
+  box.innerHTML = now.map((n,i)=>`<div><b>${n[0]}:</b> before ${baseline[i][1]} → now ${n[1]}</div>`).join("");
+}
 function predict(){
-  const p = QS[mode];
+  const p = QS[mode][qi[mode]];
+  checked = false; baseline = null;
+  $("pQn").textContent = "Question " + (qi[mode]+1) + " of " + QS[mode].length;
   $("pQ").textContent = p.q; $("pResult").textContent = "";
   $("pOpts").innerHTML = p.o.map((o,i)=>`<label><input type="radio" name="pred" value="${i}"> ${o}</label>`).join("");
+  $("pGo").disabled = false; $("pNext").hidden = true; $("pSkip").hidden = false;
+  lock(p.slider); renderLive();
 }
 $("pGo").addEventListener("click",()=>{
-  const p = QS[mode], sel = document.querySelector("input[name=pred]:checked");
-  $("pResult").textContent = !sel ? "Pick an answer first." :
-    (+sel.value===p.a ? "Correct. " : "Not quite. ") + p.e;
+  const p = QS[mode][qi[mode]], sel = document.querySelector("input[name=pred]:checked");
+  if(!sel){ $("pResult").textContent = "Pick an answer first."; return; }
+  $("pResult").textContent = (+sel.value===p.a ? "Correct. " : "Not quite. ") + p.e + " Now move the slider and watch the numbers below.";
+  document.querySelectorAll("input[name=pred]").forEach(r=>r.disabled = true);
+  baseline = p.obs(); checked = true;
+  $("pGo").disabled = true; $("pNext").hidden = false; $("pSkip").hidden = true;
+  lock(null); renderLive();
+});
+$("pNext").addEventListener("click",()=>{ qi[mode] = (qi[mode]+1) % QS[mode].length; predict(); });
+$("pSkip").addEventListener("click",()=>{
+  lock(null); $("pSkip").hidden = true;
+  $("pResult").textContent = "Unlocked without a prediction. You can still pick an answer and check it.";
 });
 
 function setMode(m){
@@ -261,19 +388,24 @@ function setMode(m){
     $("lg1").innerHTML = '<span><i style="background:var(--mark)"></i>t = τ: 63.2% of final</span><span><i style="background:var(--mark2)"></i>t = 3τ: 95% of final</span>';
   } else {
     $("t1").innerHTML = "Ramp response y(t) = Ka[t − τ(1 − e<sup>−t/τ</sup>)]";
-    $("d1").textContent = "The input rises steadily with slope a = 1. The dashed line is the ideal output K·a·t. The sensor follows it, but always late.";
-    $("lg1").innerHTML = '<span><i style="background:var(--mark2)"></i>Lag: the sensor is τ seconds behind</span><span><i style="background:var(--mark)"></i>Steady-state error: Kaτ</span>';
+    $("d1").textContent = "The input rises steadily with slope a = 1. The dashed line is the ideal output K·a·t, which is the input ramp scaled by K. The sensor follows it, but always late.";
+    $("lg1").innerHTML = '<span><i style="background:var(--mark2)"></i>Lag: the sensor is about τ seconds behind</span><span><i style="background:var(--mark)"></i>Steady-state error: about Kaτ</span>';
   }
+  $("lg1").insertAdjacentHTML("beforeend",'<span><i style="background:transparent;border:2px solid var(--ink)"></i>RK4 numerical solution</span>');
+  $("vPanel").hidden = m !== "step";
   predict(); draw();
 }
 
 function draw(){
   tau = +$("tau").value; K = +$("gain").value;
+  TMAX = niceCeil((mode==="step" ? 7 : 10)*tau);
+  T2 = niceCeil(7*tau);
   $("tauOut").textContent = tau.toFixed(1)+" s"; $("gainOut").textContent = K.toFixed(1);
   C = {line:css("--line"),muted:css("--muted"),ink:css("--ink"),curve:css("--curve"),m1:css("--mark"),m2:css("--mark2")};
-  chart1(); chart2(); cards(); validation();
+  chart1(); chart2(); cards(); validation(); renderLive();
 }
 
+$("showOde").addEventListener("change",draw);
 $("bStep").addEventListener("click",()=>setMode("step"));
 $("bRamp").addEventListener("click",()=>setMode("ramp"));
 $("tau").addEventListener("input",draw);

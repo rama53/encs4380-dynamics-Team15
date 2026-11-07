@@ -30,7 +30,14 @@ An interactive web toolkit for exploring sensor dynamic characteristics, develop
  - Helping design the layout and the cards
  - Helping write the code
  - Explained some unclear details in the understanding of the homework
+   
+**Module 2:**
 
+- Helping write and organize the HTML, CSS, and JavaScript code
+- Helping design and format the webpage
+- Explaining the frequency response equations and calculations
+- Helping debug and test the interactive features and plots
+  
 **Module 3:**
 
 - Help with writing the code and formatting the webpage

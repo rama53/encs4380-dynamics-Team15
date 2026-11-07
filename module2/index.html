@@ -47,8 +47,8 @@
 <p>
     Phase Shift (φ):
     <strong id="phaseValue">-21.8</strong> degrees 
-    <p>A negative phase shift means the output signal lags behind the input signal.</p>
 </p>
+<p>A negative phase shift means the output signal lags behind the input signal.</p>
 <h2>Input and Output Sine Waves</h2>
 <p>
     Compare the original input signal with
@@ -220,7 +220,11 @@ function updateBodePlot() {
         title: "Bode Magnitude Plot",
         xaxis: {
             title: "Angular Frequency (rad/s)",
-            type: "log"
+            type: "log",
+            range: [-2, 2],
+            tickmode: "array",
+            tickvals: [0.01, 0.1, 1, 10, 100],
+            ticktext: ["0.01", "0.1", "1", "10", "100"]
         },
         yaxis: {
             title: "Magnitude (dB)"
@@ -266,7 +270,11 @@ function updateBodePlot() {
         title: "Bode Phase Plot",
         xaxis: {
             title: "Angular Frequency (rad/s)",
-            type: "log"
+            type: "log",
+            range: [-2, 2],
+            tickmode: "array",
+            tickvals: [0.01, 0.1, 1, 10, 100],
+            ticktext: ["0.01", "0.1", "1", "10", "100"]
         },
         yaxis: {
             title: "Phase (degrees)"

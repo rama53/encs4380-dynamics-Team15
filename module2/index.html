@@ -5,8 +5,107 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Module 2 - Frequency Response</title>
     <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+:root {
+    --bg: #f5f7fa;
+    --card: #ffffff;
+    --text: #18232f;
+    --accent: #3b82f6;
+    --border: #dfe5ec;
+}
+* {
+    box-sizing: border-box;
+}
+body {
+    font-family: Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 28px 24px;
+    line-height: 1.6;
+}
+h1 {
+    color: #1d4ed8;
+    font-size: 2rem;
+}
+h2 {
+    color: #243b53;
+    margin-top: 32px;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 8px;
+}
+input[type="range"] {
+    accent-color: var(--accent);
+    cursor: pointer;
+}
+button {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    cursor: pointer;
+    font-weight: 600;
+}
+button:hover {
+    background: #2563eb;
+}
+select {
+    padding: 9px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: white;
+}
+#sinePlot,
+#bodeMagnitude,
+#bodePhase {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin: 18px 0;
+    overflow: hidden;
+}
+#predictionResult,
+#validationResults {
+    margin-top: 14px;
+}
+@media (max-width: 600px) {
+    body {
+        padding: 16px 12px;
+    }
+    h1 {
+        font-size: 1.5rem;
+    }
+    h2 {
+        font-size: 1.2rem;
+    }
+    button,
+    select {
+        max-width: 100%;
+    }
+}
+body > h2 + p {
+    margin-top: 0;
+}
+body > h2 + p,
+body > h2 + label {
+    padding-top: 14px;
+}
+body > h1 {
+    letter-spacing: -0.5px;
+}
+strong {
+    color: #1d4ed8;
+}
+input[type="range"] {
+    vertical-align: middle;
+}
+button {
+    transition: background 0.2s ease;
+}
+</style>
 </head>
-
 <body>
     <h1>Module 2: First-Order Frequency Response</h1>
     <p>
@@ -110,11 +209,9 @@
     Run Validation Tests
 </button>
 <div id="validationResults"></div>
-  
     <script>
         const tauSlider = document.getElementById("tauSlider");
         const tauValue = document.getElementById("tauValue");
-
         tauSlider.addEventListener("input", function() {
             tauValue.textContent = Number(tauSlider.value).toFixed(2);
         });   
@@ -127,14 +224,12 @@ frequencySlider.addEventListener("input", function() {
 });
 const amplitudeValue = document.getElementById("amplitudeValue");
 const phaseValue = document.getElementById("phaseValue");
-
 function updateResults() {
     const tau = Number(tauSlider.value);
     const omega = Number(frequencySlider.value);
     const M = 1 / Math.sqrt(1 + Math.pow(omega * tau, 2));
     const phaseRadians = -Math.atan(omega * tau);
     const phaseDegrees = phaseRadians * (180 / Math.PI);
-
     amplitudeValue.textContent = M.toFixed(3);
     phaseValue.textContent = phaseDegrees.toFixed(1);
 }
@@ -149,7 +244,6 @@ function updateSinePlot() {
     const time = [];
     const input = [];
     const output = [];
-
     for (let t = 0; t <= 10; t += 0.02) {
         time.push(t);
         input.push(Math.sin(omega * t));
@@ -178,7 +272,6 @@ function updateSinePlot() {
         legend: { orientation: "h" },
         margin: { t: 60, b: 60, l: 60, r: 20 }
     };
-  
     Plotly.react(
         "sinePlot",
         [inputTrace, outputTrace],
@@ -197,7 +290,6 @@ function updateBodePlot() {
     const frequencies = [];
     const magnitudes = [];
     const phases = [];
-
     for (let i = 0; i <= 200; i++) {
         const omega = Math.pow(10, -2 + i * 4 / 200);
         const M = 1 / Math.sqrt(1 + Math.pow(omega * tau, 2));
@@ -310,9 +402,11 @@ updateDynamicError();
 const prediction = document.getElementById("prediction");
 let hasChangedFrequency = false;
 let startingFrequency = Number(frequencySlider.value);
+let startingTau = Number(tauSlider.value);
 prediction.addEventListener("change", function() {
     hasChangedFrequency = false;
     startingFrequency = Number(frequencySlider.value);
+    startingTau = Number(tauSlider.value);
     predictionResult.textContent = "";
 });
 frequencySlider.addEventListener("input", function() {
@@ -321,9 +415,13 @@ frequencySlider.addEventListener("input", function() {
 });
 const checkPrediction = document.getElementById("checkPrediction");
 const predictionResult = document.getElementById("predictionResult");
-
 checkPrediction.addEventListener("click", function() {
     const answer = prediction.value;
+    if (answer !== "" && Number(tauSlider.value) !== startingTau) {
+    predictionResult.textContent =
+        "Keep the Time Constant (Tau) unchanged while increasing frequency. Choose your prediction again to restart.";
+    return;
+}
     if (answer !== "" && !hasChangedFrequency) {
     predictionResult.textContent =
         "First, change the Frequency Slider to test your prediction.";

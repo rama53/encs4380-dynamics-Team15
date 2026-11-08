@@ -69,8 +69,10 @@ th{color:var(--muted);font-size:14px}
 @media(max-width:700px){.read{grid-template-columns:1fr 1fr}}
 @media(max-width:480px){.sliders{grid-template-columns:1fr}canvas{height:280px}}
 </style>
+<link rel="stylesheet" href="../assets/site.css">
 </head>
 <body>
+<nav class="site-nav" aria-label="Main navigation"><a href="../">Home</a><a href="../module1/" aria-current="page">Module 1</a><a href="../module2/">Module 2</a><a href="../module3/module3.html">Module 3</a><span>Module 4 · Coming soon</span></nav>
 <main>
   <h1>Module 1: First-order time response</h1>
   <p class="sub">A thermometer-like sensor with gain K and time constant τ. <span class="formula">τẏ + y = Kx, G(s) = K/(τs + 1)</span>. The input is a unit step (A = 1) or a unit ramp (slope a = 1).</p>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Explore sensor dynamics through interactive time, frequency, and second-order response experiments. ENCS4380, Team 15.">
+<title>Dynamic Characteristics Toolkit · Team 15</title>
+<link rel="stylesheet" href="./assets/site.css">
+</head>
+<body class="home-body">
+<nav class="site-nav" aria-label="Main navigation">
+<a href="./" aria-current="page">Home</a><a href="./module1/">Module 1</a><a href="./module2/">Module 2</a><a href="./module3/module3.html">Module 3</a><span>Module 4 · Coming soon</span>
+</nav>
+<main class="home">
+<section class="hero" aria-labelledby="hero-title">
+<div><div class="eyebrow">ENCS4380 / Team 15</div><h1 id="hero-title">Every sensor<br>has a response.</h1><p class="intro">Explore what happens between an input and a measurement. Change the parameters, watch the response, and put the theory to the test.</p><a class="primary" href="./module1/">Start exploring <span aria-hidden="true">↗</span></a></div>
+<div class="signal"><div class="signal-top"><span>THE DYNAMICS OF MEASUREMENT</span><span aria-hidden="true">●</span></div>
+<svg viewBox="0 0 440 220" role="img" aria-label="Illustration of a step input and a sensor output gradually approaching it">
+<g stroke="#29445f" stroke-width="1"><path d="M20 30H425M20 80H425M20 130H425M20 180H425M70 20V200M150 20V200M230 20V200M310 20V200M390 20V200"/></g>
+<path d="M20 185H70V45H425" fill="none" stroke="#a9bfd6" stroke-width="2" stroke-dasharray="6 6"/>
+<path d="M20 185H70C105 185 105 110 155 78S260 46 425 45" fill="none" stroke="#69d5bf" stroke-width="4"/>
+<circle cx="155" cy="78" r="6" fill="#69d5bf" stroke="#102b46" stroke-width="3"/>
+<text x="169" y="100" fill="#c3f4e9" font-size="13" font-family="system-ui">A little time. A different reading.</text>
+</svg><div class="signal-bottom"><span>--- Input &nbsp; <span style="color:#69d5bf">━ Output</span></span><span>Time →</span></div></div>
+</section>
+<section aria-labelledby="modules-title"><div class="section-title"><h2 id="modules-title">Choose your experiment</h2><p>Predict. Adjust. Observe. Understand.</p></div>
+<div class="modules">
+<article class="module-card" style="--accent:#1d5fa8"><span class="number">01 / TIME DOMAIN</span><h3>First-order time response</h3><p>How quickly does a sensor catch up? Explore step and ramp inputs, time constants, and steady-state error.</p><div class="equation">τẏ + y = Kx</div><a href="./module1/">Explore Module 1 <span aria-hidden="true">↗</span></a></article>
+<article class="module-card" style="--accent:#14806a"><span class="number">02 / FREQUENCY DOMAIN</span><h3>First-order frequency response</h3><p>See how a changing frequency affects amplitude and phase. Connect sine waves to their Bode plots.</p><div class="equation">G(jω) = 1 / (1 + jωτ)</div><a href="./module2/">Explore Module 2 <span aria-hidden="true">↗</span></a></article>
+<article class="module-card" style="--accent:#7e4a9c"><span class="number">03 / SECOND-ORDER SYSTEMS</span><h3>Second-order response</h3><p>Meet the mass, spring, and damper. Explore oscillation, overshoot, system poles, and state-space models.</p><div class="equation">mẍ + bẋ + kx = F(t)</div><a href="./module3/module3.html">Explore Module 3 <span aria-hidden="true">↗</span></a></article>
+<article class="module-card" style="--accent:#a15b22"><span class="number">04 / PUT IT TO THE TEST</span><h3>Guess the sensor</h3><p>Read the response, uncover the hidden parameters, and test your understanding of sensor dynamics.</p><div class="equation">Observe → Estimate → Check</div><span class="coming">Coming soon</span></article>
+</div></section>
+<footer class="home-footer"><span>Dynamic Characteristics Toolkit · ENCS4380 · Team 15</span><a href="https://github.com/rama53/encs4380-dynamics-Team15">View on GitHub ↗</a></footer>
+</main>
+</body>
+</html>

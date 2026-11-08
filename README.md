@@ -42,6 +42,20 @@ An interactive web toolkit for exploring sensor dynamic characteristics, develop
 
 ## Modules Screenshots
 
+### Module 1:
+#### Sensor Parameters sliders
+<img width="781" height="266" alt="image" src="https://github.com/user-attachments/assets/95ba50e3-403e-41ac-84ce-fac995a397be" />
+
+#### Step response plotting
+<img width="737" height="418" alt="image" src="https://github.com/user-attachments/assets/f9c831c8-a3cd-4cfb-827e-442ddcf613b2" />
+
+#### Final values and error fraction plot
+<img width="763" height="442" alt="image" src="https://github.com/user-attachments/assets/2382e831-b2e8-4f5c-8391-eb8cba9b85f8" />
+
+#### Predict then check and validation check
+<img width="688" height="446" alt="image" src="https://github.com/user-attachments/assets/54c48cf1-ae1f-4551-911c-82e52ec73fd6" />
+
+
 ### Module 2:
 #### Sensor Parameters and Results
 <img width="815" height="509" alt="Screenshot 2026-11-08 000406" src="https://github.com/user-attachments/assets/5619e3c7-013c-4186-afad-be328bef5b87" />

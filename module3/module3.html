@@ -147,7 +147,7 @@
     </section>
 
     <section class="panel" aria-labelledby="state-heading">
-      <h2 id="state-heading">The same system in state-space form</h2>
+      <h2 id="state-heading">State-space model</h2>
       <p class="desc">The two states are position x₁ = x and velocity x₂ = ẋ. The input F(t) is the same 1 N force step, and the output y is position.</p>
       <p class="formula">ẋ = A x + B F(t), &nbsp; y = C x, &nbsp; D = 0</p>
       <div class="matrix-row" aria-label="State-space matrices" aria-live="polite" aria-atomic="true">
@@ -175,7 +175,6 @@
         <p class="formula">ẋ₁ = x₂</p>
         <p class="formula" id="accelerationEquation"></p>
       </div>
-      <p class="desc state-explanation">The first row updates position from velocity. The second row updates velocity from the spring, damper, and applied force. The eigenvalues above are calculated from this A matrix.</p>
     </section>
 
     <section class="panel" aria-labelledby="phase-heading">
@@ -191,10 +190,9 @@
     </section>
     <section class="panel" aria-labelledby="validation-heading">
       <h2 id="validation-heading">Validation checks</h2>
-      <p class="desc">These fixed reference cases run when the page loads, independently of the sliders. The calculated values are compared with the rounded values from the homework.</p>
+      <p class="desc">Compare the calculated results with the homework values</p>
       <div class="table-scroll" role="region" aria-label="Validation results; scroll horizontally on small screens" tabindex="0">
         <table class="validation-table">
-          <caption>Module 3: homework checks 4–6</caption>
           <thead><tr><th scope="col">Check</th><th scope="col">Expected</th><th scope="col">Calculated</th><th scope="col">Result</th></tr></thead>
           <tbody id="validationBody"></tbody>
         </table>

@@ -1,4 +1,4 @@
-// Module 3: the system equations and measurements are ours; Plotly draws the graphs.
+// system calculations and plots
 const $ = id => document.getElementById(id);
 const setText = (id, value) => { $(id).textContent = value; };
 const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -6,7 +6,7 @@ const massSlider = $("mass"), dampingSlider = $("damping"), stiffnessSlider = $(
 const STEP_FORCE = 1, SETTLING_FRACTION = 0.05;
 let currentResponse, prediction;
 
-// Exact step response and its derivative, starting at zero position and velocity.
+// position and velocity from rest
 function createSystem(m, b, k) {
   const omegaN = Math.sqrt(k / m), zeta = b / (2 * Math.sqrt(k * m));
   const alpha = b / (2 * m), finalPosition = STEP_FORCE / k;
@@ -34,7 +34,7 @@ function createSystem(m, b, k) {
   return { m, b, k, omegaN, zeta, alpha, omegaD, kind, finalPosition, normalizedPosition, normalizedVelocity, poles };
 }
 
-// Eigenvalues are calculated from A itself, independently of the transfer-function poles.
+// get eigenvalues from A
 function createStateSpace(system) {
   const A = [[0, 1], [-system.k / system.m, -system.b / system.m]], B = [[0], [1 / system.m]];
   const eigenvalues = eigenvaluesOfA(A);
@@ -54,7 +54,7 @@ function eigenvaluesOfA(A) {
   return [{ real: determinant / fast, imaginary: 0 }, { real: fast, imaginary: 0 }];
 }
 
-// Bisection finds an upward or downward crossing of a chosen position.
+// find crossing times with bisection
 function crossingTime(positionAt, target, left, right) {
   let leftError = positionAt(left) - target;
   if (Math.abs(leftError) < 1e-14) return left;
@@ -78,7 +78,7 @@ function measureResponse(system) {
   if (system.b !== 0) {
     if (peakTime === null) settlingTime = crossingTime(positionAt, 1 - SETTLING_FRACTION, 0, right);
     else {
-      // Find the last extremum outside the band, then its crossing back inside.
+      // find the last crossing into the band
       const halfPeriod = Math.PI / system.omegaD;
       const last = Math.max(0, Math.ceil(Math.log(1 / SETTLING_FRACTION) / (system.alpha * halfPeriod)) - 1);
       const target = 1 + (last % 2 === 0 ? -SETTLING_FRACTION : SETTLING_FRACTION);
@@ -89,7 +89,7 @@ function measureResponse(system) {
     peakPosition: peakTime === null ? null : system.finalPosition * (1 + overshoot), overshootPercent: 100 * overshoot };
 }
 
-// Both graphs sample the same formula. Phase samples also include velocity.
+// sample position and velocity for the graphs
 function sampleCurve(system, endTime, phase = false) {
   const cycles = system.omegaD === null ? 0 : endTime * system.omegaD / (2 * Math.PI);
   const count = Math.max(1600, Math.min(20000, Math.ceil(cycles * 40)));
@@ -131,7 +131,7 @@ function formatComplex(value) {
     : (value.imaginary >= 0 ? " + j" : " − j") + formatScalar(Math.abs(value.imaginary)));
 }
 
-// All text updates are kept together so the displayed numbers follow the model
+// update values from the sliders
 function updateParameters() {
   const m = Number(massSlider.value), b = Number(dampingSlider.value), k = Number(stiffnessSlider.value);
   const system = createSystem(m, b, k), metrics = measureResponse(system), stateSpace = createStateSpace(system);
@@ -143,7 +143,7 @@ function updateParameters() {
     finalValueOut: f.toFixed(3) + " m", riseTimeOut: formatTime(metrics.riseTime),
     riseDetails: "10% at " + formatTime(metrics.t10) + "; 90% at " + formatTime(metrics.t90) + ".",
     peakTimeOut: metrics.peakTime === null ? "N/A" : formatTime(metrics.peakTime),
-    peakDetails: metrics.peakTime === null ? "Monotonic response; there is no finite overshoot peak."
+    peakDetails: metrics.peakTime === null ? "No overshoot peak"
       : "Peak position: " + metrics.peakPosition.toFixed(3) + " m.",
     overshootOut: metrics.overshootPercent.toFixed(3) + "%",
     settlingTimeOut: metrics.settlingTime === null ? "Never" : formatTime(metrics.settlingTime),
@@ -151,10 +151,10 @@ function updateParameters() {
       : "The last crossing into the band, rather than its first entry.",
     a21Out: formatScalar(stateSpace.A[1][0]), a22Out: formatScalar(stateSpace.A[1][1]), b2Out: formatScalar(stateSpace.B[1][0]),
     accelerationEquation: `ẋ₂ = −${formatScalar(k / m)} x₁ − ${formatScalar(b / m)} x₂ + ${formatScalar(1 / m)} F(t)`,
-    eigenMatchOut: stateSpace.match ? "Poles = eigenvalues of A. Both descriptions give the same natural motion."
+    eigenMatchOut: stateSpace.match ? "Poles = eigenvalues of A"
       : "The pole and eigenvalue calculations do not agree.",
-    responseSummary: `${system.kind}. The settling band is ${(f * 0.95).toFixed(4)}–${(f * 1.05).toFixed(4)} m. ` +
-      (metrics.settlingTime === null ? "The plot shows three cycles." : "The time axis adapts to include the first peak and settling time.")
+    responseSummary: `${system.kind}. The settling band is ${(f * 0.95).toFixed(4)}–${(f * 1.05).toFixed(4)} m.` +
+      (metrics.settlingTime === null ? " The plot shows three cycles." : "")
   };
   Object.entries(outputs).forEach(([id, value]) => setText(id, value));
   system.poles.forEach((p, i) => {
@@ -176,7 +176,7 @@ function updateParameters() {
   drawAllPlots();
 }
 
-// Plotly handles axes, ticks, clipping, sizing, and the actual drawing.
+// draw the graphs with plotly
 const line = (points, color) => ({ type: "scatter", mode: "lines", x: points.map(p => p[0]),
   y: points.map(p => p[1]), line: { color, width: 2.5 }, hoverinfo: "skip" });
 const dots = (points, color, symbol = "circle", size = 9) => ({ ...line(points, color), mode: "markers",
@@ -197,7 +197,7 @@ function chart(id, data, xLabel, yLabel, extra = {}) {
 function drawResponsePlot() {
   const { system: s, metrics: r, points, endTime } = currentResponse, f = s.finalPosition;
   const yMax = Math.max(r.peakPosition || f, f * 1.05) * 1.16;
-  // A marker contains [time, position, color, full-height line].
+  // marker time position color and full height flag
   const markers = [[r.t10, f * 0.1, css("--focus")], [r.t90, f * 0.9, css("--focus")]];
   if (r.peakTime !== null) markers.push([r.peakTime, r.peakPosition, css("--peak")]);
   if (r.settlingTime !== null) markers.push([r.settlingTime, f * s.normalizedPosition(r.settlingTime), css("--settle"), true]);
@@ -228,7 +228,7 @@ function drawPolePlot() {
     });
 }
 
-// Arrowheads follow increasing time at three positions along the phase path.
+// add arrows along the path
 function directionArrows(points, xRange, yRange) {
   const lengths = [0], dx = xRange[1] - xRange[0], dy = yRange[1] - yRange[0];
   for (let i = 1; i < points.length; i++) lengths.push(lengths[i - 1] +
@@ -256,7 +256,7 @@ function drawAllPlots() {
   return Promise.all([drawResponsePlot(), drawPolePlot(), drawPhasePlot()]);
 }
 
-// Save the baseline before the user moves one slider
+// save values before changing a slider
 const parameterNames = ["m", "b", "k"];
 const parameterValues = () => [massSlider, dampingSlider, stiffnessSlider].map(slider => Number(slider.value));
 const roundedOvershoot = metrics => Number(metrics.overshootPercent.toFixed(3));

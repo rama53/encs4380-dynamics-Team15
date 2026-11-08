@@ -5,10 +5,6 @@ An interactive web toolkit for exploring sensor dynamic characteristics, develop
 
 [Open the Dynamic Characteristics Toolkit](https://rama53.github.io/encs4380-dynamics-Team15/)
 
-- [Module 1: First-Order Time Response](https://rama53.github.io/encs4380-dynamics-Team15/)
-- [Module 2: First-Order Frequency Response](https://rama53.github.io/encs4380-dynamics-Team15/module2/)
-- [Module 3: Second-Order Response](https://rama53.github.io/encs4380-dynamics-Team15/module3/module3.html)
-
 ## Team Members and Responsibilities
 
 | Team Member | Module |

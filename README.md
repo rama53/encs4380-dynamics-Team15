@@ -74,3 +74,33 @@ An interactive web toolkit for exploring sensor dynamic characteristics, develop
 
 #### Validation Tests
 <img width="567" height="528" alt="Screenshot 2026-11-08 000510" src="https://github.com/user-attachments/assets/4d39bbf2-f76e-4c87-97af-fa30e298d6e8" />
+
+### Module 3:
+#### Mass spring damper controls
+<img width="1168" height="681" alt="image" src="https://github.com/user-attachments/assets/65c97378-73de-4a70-9fce-fb3d05fee651" />
+
+#### Predict then check and system parameters
+<img width="1162" height="859" alt="image" src="https://github.com/user-attachments/assets/dd490cb4-4dc9-46cc-bed2-6737edd31d51" />
+
+#### Unit force step response
+<img width="1080" height="859" alt="image" src="https://github.com/user-attachments/assets/f741dc0c-3611-4a28-babe-7905607221a9" />
+
+#### Response measurements
+<img width="1178" height="567" alt="image" src="https://github.com/user-attachments/assets/5e192f2c-0330-4ccc-bc36-8719e736a31f" />
+
+#### Poles and eigenvalues
+<img width="1161" height="875" alt="image" src="https://github.com/user-attachments/assets/53d93b9d-20ec-44b5-891b-0c2a58e8f214" />
+
+#### State space model
+<img width="1098" height="456" alt="image" src="https://github.com/user-attachments/assets/993d6378-d931-4761-9133-71f7771f651d" />
+
+#### Position velocity phase plane
+<img width="1086" height="750" alt="image" src="https://github.com/user-attachments/assets/3e227334-cd60-4f43-9b4b-7fd2359b3419" />
+
+#### Validation checks
+<img width="1103" height="456" alt="image" src="https://github.com/user-attachments/assets/847904f9-d3fb-4cc4-9baf-6a16aa48400f" />
+
+
+
+
+

@@ -55,25 +55,24 @@ An interactive web toolkit for exploring sensor dynamic characteristics, develop
 #### Predict then check and validation check
 <img width="688" height="446" alt="image" src="https://github.com/user-attachments/assets/54c48cf1-ae1f-4551-911c-82e52ec73fd6" />
 
-
 ### Module 2:
 #### Sensor Parameters and Results
-<img width="815" height="509" alt="Screenshot 2026-11-08 000406" src="https://github.com/user-attachments/assets/5619e3c7-013c-4186-afad-be328bef5b87" />
+<img width="873" height="449" alt="Screenshot 2026-11-10 195638" src="https://github.com/user-attachments/assets/cc7ee44c-d8f8-4f2f-a1a1-3df0217d0fb8" />
 
 #### Input and Output Sine Waves
-<img width="1212" height="560" alt="Screenshot 2026-11-08 000414" src="https://github.com/user-attachments/assets/a337f7fd-4bdb-4286-b849-11738d3cd959" />
+<img width="867" height="506" alt="Screenshot 2026-11-10 195649" src="https://github.com/user-attachments/assets/a5f8915c-7525-46f2-9df4-a93e4843a8bd" />
 
 #### Bode Magnitude Plot
-<img width="1134" height="558" alt="Screenshot 2026-11-08 000421" src="https://github.com/user-attachments/assets/ccf4d964-155e-4890-a707-a5dd00cf5624" />
+<img width="868" height="468" alt="Screenshot 2026-11-10 195659" src="https://github.com/user-attachments/assets/dea755c0-22dc-4bbe-9f96-888359d5aad6" />
 
 ### Bode Phase Plot
-<img width="1110" height="364" alt="Screenshot 2026-11-08 000426" src="https://github.com/user-attachments/assets/cc501908-a447-4e0a-badc-30a272eedbda" />
+<img width="876" height="501" alt="Screenshot 2026-11-10 195710" src="https://github.com/user-attachments/assets/b8e79082-bf8c-4445-bc3a-a8873e0b3e8f" />
 
 #### Dynamic Error and Predict-then-Check
-<img width="1049" height="499" alt="Screenshot 2026-11-08 000638" src="https://github.com/user-attachments/assets/79ecff53-3fc6-47c0-8734-6f705c167057" />
+<img width="865" height="425" alt="Screenshot 2026-11-10 195718" src="https://github.com/user-attachments/assets/741315c5-6be8-4028-a33f-64b0166cbfb1" />
 
 #### Validation Tests
-<img width="567" height="528" alt="Screenshot 2026-11-08 000510" src="https://github.com/user-attachments/assets/4d39bbf2-f76e-4c87-97af-fa30e298d6e8" />
+<img width="863" height="405" alt="Screenshot 2026-11-10 195728" src="https://github.com/user-attachments/assets/f61f28e7-63ad-45ed-8713-7ecbb24666f7" />
 
 ### Module 3:
 #### Mass spring damper controls

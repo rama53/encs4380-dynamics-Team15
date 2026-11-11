@@ -21,16 +21,6 @@ An interactive web toolkit for exploring sensor dynamic characteristics, develop
 3. **Second-Order Response:** Explore damping, response metrics, poles, and the state-space model.
 4. **Guess the Sensor Challenge:** Estimate hidden sensor parameters from response plots and check your predictions.
 
-### How Module 4 works
-
-- Each round picks a hidden random sensor: first order (random K and τ) or second order (random ζ and ωn).
-- First-order sensors get a unit step or, sometimes, a sine input at a stated frequency. Second-order sensors get a unit step.
-- The page plots a noisy response and shows t and y under the pointer.
-- A two-level hint button points to the method: the 63.2% point and log method for first order, amplitude and phase for the sine case, and overshoot and peak time for second order.
-- On submit, the page reveals the true values and overlays the true curve and the guess curve.
-- Each parameter earns full marks within 10% error, decaying linearly to zero at 50% error. A running score is kept for the session.
-- "New sensor" starts another round.
-
 ## AI Assistance
  **Module 1:**
  - Helping design the layout and the cards

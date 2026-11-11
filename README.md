@@ -21,6 +21,16 @@ An interactive web toolkit for exploring sensor dynamic characteristics, develop
 3. **Second-Order Response:** Explore damping, response metrics, poles, and the state-space model.
 4. **Guess the Sensor Challenge:** Estimate hidden sensor parameters from response plots and check your predictions.
 
+### How Module 4 works
+
+- Each round picks a hidden random sensor: first order (random K and τ) or second order (random ζ and ωn).
+- First-order sensors get a unit step or, sometimes, a sine input at a stated frequency. Second-order sensors get a unit step.
+- The page plots a noisy response and shows t and y under the pointer.
+- A two-level hint button points to the method: the 63.2% point and log method for first order, amplitude and phase for the sine case, and overshoot and peak time for second order.
+- On submit, the page reveals the true values and overlays the true curve and the guess curve.
+- Each parameter earns full marks within 10% error, decaying linearly to zero at 50% error. A running score is kept for the session.
+- "New sensor" starts another round.
+
 ## AI Assistance
  **Module 1:**
  - Helping design the layout and the cards
@@ -39,6 +49,13 @@ An interactive web toolkit for exploring sensor dynamic characteristics, develop
 - Help with writing the code and formatting the webpage
 - Explanations of the parameters and what they mean
 - Explanations of the Module 3 requirements
+
+**Module 4:**
+
+- Helping write the code and match the design of Module 1,2 & 3
+- Helping plan the random sensors, the noise, and the scoring
+- Explaining the equations used for the first-order and second-order responses
+- Helping update the home page and the README
 
 ## Modules Screenshots
 
@@ -98,6 +115,22 @@ An interactive web toolkit for exploring sensor dynamic characteristics, develop
 
 #### Validation checks
 <img width="1103" height="456" alt="image" src="https://github.com/user-attachments/assets/847904f9-d3fb-4cc4-9baf-6a16aa48400f" />
+
+### Module 4:
+#### First-order sensor: noisy step response
+<img width="722" height="683" alt="Screenshot 2026-11-11 230339" src="https://github.com/user-attachments/assets/a33a589c-a71e-40d3-a7e1-39465739dc20" />
+
+#### First-order sensor: sine input
+<img width="732" height="738" alt="Screenshot 2026-11-11 230756" src="https://github.com/user-attachments/assets/e8b28fad-062f-4a11-b776-94c170333e10" />
+
+#### Second-order sensor response
+<img width="731" height="708" alt="Screenshot 2026-11-11 230413" src="https://github.com/user-attachments/assets/56b69ebb-9152-48c8-a18d-7a436ea74d6b" />
+
+#### Estimate form and hint
+<img width="732" height="738" alt="Screenshot 2026-11-11 230756" src="https://github.com/user-attachments/assets/24722c74-12fb-4ae8-9b8e-a120c681a053" />
+
+#### Reveal with true and guess curves and score table
+<img width="740" height="897" alt="Screenshot 2026-11-11 230205" src="https://github.com/user-attachments/assets/7c73a02a-d8c9-4634-bdcd-8babcde4b032" />
 
 
 

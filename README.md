@@ -4,7 +4,7 @@ An interactive web toolkit for exploring sensor dynamic characteristics, develop
 ## Live Website
 
 [Open the Dynamic Characteristics Toolkit](https://rama53.github.io/encs4380-dynamics-Team15/)
-- [Control: PID Control Toolkit (Homework 2)](https://rama53.github.io/encs4380-dynamics-Team15/control/)
+[Control: PID Control Toolkit (Homework 2)](https://rama53.github.io/encs4380-dynamics-Team15/control/)
 
 ## Team Members and Responsibilities
 
@@ -30,6 +30,14 @@ An interactive web toolkit for exploring sensor dynamic characteristics, develop
 2. **First-Order Frequency Response:** Explore sinusoidal responses, amplitude ratio, phase lag, Bode plots, and dynamic error.
 3. **Second-Order Response:** Explore damping, response metrics, poles, and the state-space model.
 4. **Guess the Sensor Challenge:** Estimate hidden sensor parameters from response plots and check your predictions.
+
+## Control Modules (Homework 2)
+
+1. **P1: PID Playground:** Tune Kp, Ki and Kd on a first- or second-order plant, and explore the output, control signal, rise time, overshoot, settling time, steady-state error and the three validation checks.
+2. **P2: A Slow Sensor in the Loop:** Add a first-order sensor to the feedback path, and compare the true output with what the sensor reports as its time constant grows until the loop oscillates.
+3. **P3: Digital PID:** Explore the sampling time, anti-windup, and the stair-step control signal, and copy the generated Arduino loop for your gains.
+4. **P4: Tuning Challenge:** Tune the gains of a hidden random plant to meet a specification, with pass or fail for each part and a score.
+5. **My System:** Apply the controller to the Micromouse drive motor, with the source of K and τ, the chosen specification, the final gains and the Arduino code.
 
 ## AI Assistance
  **Module 1:**

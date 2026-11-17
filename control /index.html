@@ -28,11 +28,46 @@
       control affect a system's response.
     </p>
 
-    <h2>Coming Next</h2>
-    <p>
+    
+<section id="pid-controls">
+  <h2>PID Controller Settings</h2>
+
+  <label for="kp">Kp: <span id="kpValue">9</span></label>
+  <input type="range" id="kp"
+         min="0" max="20" step="0.1" value="9">
+
+  <label for="ki">Ki: <span id="kiValue">0</span></label>
+  <input type="range" id="ki"
+         min="0" max="20" step="0.1" value="0">
+
+  <label for="kd">Kd: <span id="kdValue">0</span></label>
+  <input type="range" id="kd"
+         min="0" max="10" step="0.1" value="0">
+
+  <label for="setpoint">
+    Setpoint: <span id="setpointValue">1</span>
+  </label>
+  <input type="range" id="setpoint"
+         min="0.1" max="5" step="0.1" value="1">
+</section>
+
       Interactive PID gains, system simulation,
       response graphs, and performance metrics.
     </p>
   </main>
+  
+<script>
+  const sliders = ["kp", "ki", "kd", "setpoint"];
+
+  sliders.forEach(id => {
+    const slider = document.getElementById(id);
+    const valueLabel = document.getElementById(id + "Value");
+
+    slider.addEventListener("input", () => {
+      valueLabel.textContent = slider.value;
+    });
+  });
+</script>
+
 </body>
 </html>

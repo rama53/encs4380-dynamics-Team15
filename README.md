@@ -4,6 +4,7 @@ An interactive web toolkit for exploring sensor dynamic characteristics, develop
 ## Live Website
 
 [Open the Dynamic Characteristics Toolkit](https://rama53.github.io/encs4380-dynamics-Team15/)
+- [Control: PID Control Toolkit (Homework 2)](https://rama53.github.io/encs4380-dynamics-Team15/control/)
 
 ## Team Members and Responsibilities
 
@@ -13,6 +14,15 @@ An interactive web toolkit for exploring sensor dynamic characteristics, develop
 | Rahaf Doufash | Module 2: First-Order Frequency Response |
 | Omar Shobaki | Module 3: Second-Order Response |
 | Itidal Fares | Module 4: Guess the Sensor Challenge |
+
+## Homework 2: PID Control Toolkit
+
+| Team Member | Module |
+|---|---|
+| Itidal Fares | P1: PID Playground |
+| Omar Shobaki | P2: A Slow Sensor in the Loop |
+| NAME | P3: Digital PID |
+| NAME | P4: Tuning Challenge and My System |
 
 ## Modules
 
@@ -46,6 +56,12 @@ An interactive web toolkit for exploring sensor dynamic characteristics, develop
 - Helping plan the random sensors, the noise, and the scoring
 - Explaining the equations used for the first-order and second-order responses
 - Helping update the home page and the README
+
+**P1:**
+
+- Helped write the RK4 closed-loop simulation and the page layout
+- Explained the PID equations and the validation checks
+- I reviewed the code and can explain every equation
 
 ## Modules Screenshots
 

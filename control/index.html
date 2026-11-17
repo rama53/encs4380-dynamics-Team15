@@ -1,320 +1,363 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>P1 · PID Playground</title>
-<link rel="stylesheet" href="../assets/site.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>P1: PID playground</title>
 <style>
-:root{--bg:#f6f7f4;--panel:#fff;--ink:#1b2420;--mute:#5d6a63;--line:#d7ddd8;--out:#0b6e4f;--sp:#8a6d00;--u:#b3261e;--lim:#6b4fbb;--ok:#0b6e4f;--bad:#b3261e;--accent:#0b6e4f}
-@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121815;--panel:#1a221e;--ink:#e6ede8;--mute:#9aa8a0;--line:#2e3a34;--out:#4fd1a0;--sp:#e0b84a;--u:#ff8a80;--lim:#b9a4ff;--ok:#4fd1a0;--bad:#ff8a80;--accent:#4fd1a0}}
-:root[data-theme="dark"]{--bg:#121815;--panel:#1a221e;--ink:#e6ede8;--mute:#9aa8a0;--line:#2e3a34;--out:#4fd1a0;--sp:#e0b84a;--u:#ff8a80;--lim:#b9a4ff;--ok:#4fd1a0;--bad:#ff8a80;--accent:#4fd1a0}
-:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-*,*::before,*::after{box-sizing:inherit}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Georgia,"Iowan Old Style",serif}
-h1,h2,h3,button,label,.num,.tag{font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif}
-main{max-width:1100px;margin:0 auto;padding:16px}
-h1{font-size:1.6rem;margin:.2em 0}
-h2{font-size:1.05rem;margin:0 0 .6em}
-.sub{color:var(--mute);margin:0 0 1em;max-width:70ch}
-.grid{display:grid;gap:14px;grid-template-columns:1fr}
-@media(min-width:860px){.grid{grid-template-columns:340px 1fr}}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
-.row{display:grid;grid-template-columns:70px 1fr 56px;align-items:center;gap:8px;margin:6px 0;font-family:"Trebuchet MS",system-ui,sans-serif;font-size:.9rem}
-.row output{text-align:right;font-variant-numeric:tabular-nums}
-input[type=range]{width:100%;accent-color:var(--accent)}
-select,input[type=number],textarea{font:inherit;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:4px 6px;max-width:100%}
-button{font-size:.9rem;background:var(--accent);color:var(--bg);border:0;border-radius:6px;padding:7px 12px;cursor:pointer}
-button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
-button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--lim);outline-offset:2px}
-.btns{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
-canvas{width:100%;height:230px;display:block}
-.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-@media(min-width:560px){.metrics{grid-template-columns:repeat(4,1fr)}}
-.m{border:1px solid var(--line);border-radius:8px;padding:8px}
-.m .k{font-size:.78rem;color:var(--mute);font-family:"Trebuchet MS",system-ui,sans-serif}
-.m .num{font-size:1.35rem;font-weight:bold}
-.stack>*+*{margin-top:14px}
-.legend{font:.8rem "Trebuchet MS",system-ui,sans-serif;color:var(--mute);margin-top:4px}
-.legend b{display:inline-block;width:18px;height:3px;vertical-align:middle;margin:0 4px 0 10px}
-.scroll{overflow-x:auto}
-svg text{fill:var(--ink);font:12px "Trebuchet MS",system-ui,sans-serif}
-svg .bx{fill:var(--bg);stroke:var(--ink);stroke-width:1.4}
+:root{
+  --bg:#f5f7fa;--card:#fff;--ink:#18232f;--muted:#5d6b7a;--line:#dfe5ec;
+  --curve:#1d5fa8;--mark:#d4561f;--mark2:#14806a;--okbg:#dff3ec;--badbg:#fbe3dc;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){color-scheme:dark;--bg:#10161d;--card:#18212b;--ink:#e8eef4;--muted:#9aa9b8;--line:#2b3745;--curve:#6cb0f0;--mark:#ff8a5c;--mark2:#4fd0b0;--okbg:#14382f;--badbg:#4a2219}
+}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#10161d;--card:#18212b;--ink:#e8eef4;--muted:#9aa9b8;--line:#2b3745;--curve:#6cb0f0;--mark:#ff8a5c;--mark2:#4fd0b0;--okbg:#14382f;--badbg:#4a2219}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.5;padding:20px 16px 48px}
+main{max-width:860px;margin:0 auto}
+h1{font-size:clamp(22px,4vw,30px);margin:8px 0 4px}
+h2{font-size:18px;margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 12px;max-width:70ch}
+.formula{font-family:Georgia,"Times New Roman",serif}
+.links{display:flex;flex-wrap:wrap;gap:4px 16px;margin:0 0 16px;color:var(--muted);font-size:14px}
+.links a{color:var(--curve)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-top:16px}
+.desc{color:var(--muted);margin:0 0 8px;max-width:70ch}
+.sliders{display:grid;grid-template-columns:1fr 1fr;gap:20px 28px;margin-top:16px}
+.sliders[hidden]{display:none}
+.sl label{display:flex;justify-content:space-between;align-items:baseline;font-weight:600;margin-bottom:6px}
+.sl output{font-variant-numeric:tabular-nums;color:var(--curve);font-size:1.15em}
+.sl small{display:block;color:var(--muted);margin-top:4px}
+input[type=range]{width:100%;accent-color:var(--curve);margin:0}
+input[type=range]:disabled{opacity:.45;cursor:not-allowed}
+.lockmsg{color:var(--mark);font-weight:600;margin:12px 0 0;min-height:1.5em}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{font:inherit;font-weight:600;padding:9px 18px;border:0;background:var(--card);color:var(--muted);cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--curve);color:#fff}
+button:focus-visible,input:focus-visible{outline:3px solid var(--mark);outline-offset:2px}
+canvas{display:block;width:100%;height:330px}
+.chk{display:flex;gap:8px;align-items:center;margin:14px 0 4px;font-weight:600;cursor:pointer}
+.chk input{accent-color:var(--curve)}
+.note{color:var(--muted);font-size:14px;margin:4px 2px 0}
+.warn{color:var(--mark);font-weight:600;margin:8px 0 0;min-height:1.5em}
+.legend{display:flex;flex-wrap:wrap;gap:6px 20px;padding:4px 2px;color:var(--muted);font-size:14px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+.read{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px}
+.read div{background:var(--card);border:1px solid var(--line);border-top:4px solid var(--muted);border-radius:12px;padding:14px}
+.read span{display:block;font-size:16px;font-weight:700;line-height:1.25;margin-bottom:6px}
+.read b{display:block;font-size:20px;font-weight:600;font-variant-numeric:tabular-nums;margin-bottom:6px}
+.read small{display:block;color:var(--muted);font-size:14px;line-height:1.35}
+.read .a{border-top-color:var(--mark)}.read .a b{color:var(--mark)}
+.read .b{border-top-color:var(--mark2)}.read .b b{color:var(--mark2)}
+.read .c{border-top-color:var(--curve)}.read .c b{color:var(--curve)}
+.opts{display:grid;gap:8px;margin:10px 0}
+.opts label{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer}
+.opts input{accent-color:var(--curve)}
+.row{display:flex;flex-wrap:wrap;gap:10px}
+.go{font:inherit;font-weight:600;padding:9px 18px;border:0;border-radius:10px;background:var(--curve);color:#fff;cursor:pointer}
+.go[disabled]{opacity:.5;cursor:not-allowed}
+.sec{font:inherit;font-weight:600;padding:9px 18px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);cursor:pointer}
+#pResult{margin:12px 0 0;font-weight:600}
+.live{margin-top:12px;padding:12px;border:1px dashed var(--line);border-radius:10px;font-variant-numeric:tabular-nums}
+.live div+div{margin-top:4px}
+.wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:520px}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+th{color:var(--muted);font-size:14px}
+.pill{display:inline-block;padding:2px 12px;border-radius:99px;font-weight:700}
+.pass{background:var(--okbg);color:var(--mark2)}.fail{background:var(--badbg);color:var(--mark)}
+svg text{fill:var(--ink);font:12px system-ui,Arial,sans-serif}
+svg .bx{fill:var(--card);stroke:var(--ink);stroke-width:1.4}
 svg .ln{stroke:var(--ink);stroke-width:1.4;fill:none}
-.pass{color:var(--ok)}.fail{color:var(--bad)}
-.chk{margin:.4em 0;font-size:.92rem}
-.tag{font-size:.8rem;color:var(--mute)}
-details summary{cursor:pointer;font-family:"Trebuchet MS",system-ui,sans-serif}
-.warn{color:var(--bad);font-size:.88rem;font-family:"Trebuchet MS",system-ui,sans-serif}
+@media(max-width:700px){.read{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.sliders{grid-template-columns:1fr}canvas{height:280px}}
 </style>
+<link rel="stylesheet" href="../assets/site.css">
 </head>
 <body>
 <nav class="site-nav" aria-label="Main navigation"><a href="../">Home</a><a href="../module1/">Module 1</a><a href="../module2/">Module 2</a><a href="../module3/">Module 3</a><a href="../module4/">Module 4</a><a href="./" aria-current="page">Control</a></nav>
 <main>
-<p class="tag" style="display:flex;flex-wrap:wrap;gap:6px 16px;margin:0 0 6px"><b>Control toolkit:</b><a href="./" aria-current="page">P1 Playground</a><a href="p2.html">P2 Slow sensor</a><a href="p3.html">P3 Digital PID</a><a href="p4.html">P4 Tuning challenge</a><a href="my-system.html">My system</a></p>
-<h1>P1 · PID playground</h1>
-<p class="sub">Close a feedback loop around a plant and watch what P, I and D each do. The simulation steps the loop in time with RK4, so every gain setting works, even where no formula exists.</p>
+  <h1>P1: PID playground</h1>
+  <p class="sub">Close a feedback loop around a plant and see what P, I and D each do. The loop is stepped in time with RK4, so every gain setting works. <span class="formula">u = Kp·e + Ki∫e dt + Kd·de/dt</span></p>
+  <p class="links"><b>Control toolkit:</b><a href="./" aria-current="page">P1 Playground</a><a href="p2.html">P2 Slow sensor</a><a href="p3.html">P3 Digital PID</a><a href="p4.html">P4 Tuning challenge</a><a href="my-system.html">My system</a></p>
 
-<div class="grid">
-<div class="stack">
- <div class="panel">
-  <h2>Plant</h2>
-  <div class="row"><span>Type</span><select id="ptype" style="grid-column:2/4"><option value="1">First order  K/(τs+1)</option><option value="2">Second order  Kωn²/(s²+2ζωn s+ωn²)</option></select></div>
-  <div id="p1box">
-   <div class="row"><span>K</span><input id="K" type="range" min="0.1" max="5" step="0.1" value="1"><output></output></div>
-   <div class="row"><span>τ (s)</span><input id="tau" type="range" min="0.1" max="5" step="0.05" value="1"><output></output></div>
+  <div class="panel">
+    <div class="seg" role="group" aria-label="Plant type">
+      <button id="b1" aria-pressed="true">First-order plant</button>
+      <button id="b2" aria-pressed="false">Second-order plant</button>
+    </div>
+    <div class="sliders" id="p1sl"></div>
+    <div class="sliders" id="p2sl" hidden></div>
+    <div class="sliders" id="ctlsl" style="margin-top:20px"></div>
+    <label class="chk"><input type="checkbox" id="aw" checked> Anti-windup: stop integrating while u is saturated</label>
+    <div class="row" style="margin-top:12px">
+      <button class="sec" data-pre="P">P only: Kp = 9</button>
+      <button class="sec" data-pre="PI">PI: Kp = 1, Ki = 1</button>
+      <button class="sec" data-pre="PID">PID example</button>
+    </div>
+    <p class="lockmsg" id="lockMsg" aria-live="polite"></p>
+    <p class="warn" id="warn" aria-live="polite"></p>
   </div>
-  <div id="p2box" hidden>
-   <div class="row"><span>K</span><input id="K2" type="range" min="0.1" max="5" step="0.1" value="1"><output></output></div>
-   <div class="row"><span>ωn</span><input id="wn" type="range" min="0.5" max="10" step="0.1" value="2"><output></output></div>
-   <div class="row"><span>ζ</span><input id="zeta" type="range" min="0.1" max="2" step="0.05" value="0.5"><output></output></div>
-  </div>
- </div>
- <div class="panel">
-  <h2>Controller and setpoint</h2>
-  <div class="row"><span>Kp</span><input id="Kp" type="range" min="0" max="20" step="0.1" value="9"><output></output></div>
-  <div class="row"><span>Ki</span><input id="Ki" type="range" min="0" max="20" step="0.1" value="0"><output></output></div>
-  <div class="row"><span>Kd</span><input id="Kd" type="range" min="0" max="5" step="0.05" value="0"><output></output></div>
-  <div class="row"><span>Setpoint</span><input id="r" type="range" min="0.1" max="10" step="0.1" value="1"><output></output></div>
-  <div class="row"><span>u max</span><input id="umax" type="range" min="1" max="200" step="1" value="100"><output></output></div>
-  <div class="row"><span>u min</span><input id="umin" type="range" min="-200" max="0" step="1" value="-100"><output></output></div>
-  <div class="row"><span>Sim time</span><input id="T" type="range" min="2" max="30" step="1" value="6"><output></output></div>
-  <label class="tag"><input id="aw" type="checkbox" checked> Anti-windup (stop integrating while u is saturated)</label>
-  <div class="btns">
-   <button class="ghost" data-pre="P">P only · Kp=9</button>
-   <button class="ghost" data-pre="PI">PI · 1, 1</button>
-   <button class="ghost" data-pre="PID">PID example</button>
-  </div>
-  <div id="warn" class="warn"></div>
- </div>
- <div class="panel">
-  <h2>Predict, then check</h2>
-  <p class="tag" style="margin-top:0">Pick a metric and guess how it will change. Lock it in, move the sliders, then check.</p>
-  <div class="btns" style="align-items:center">
-   <select id="pm"><option value="rise">Rise time</option><option value="os" selected>Overshoot</option><option value="ts">Settling time</option><option value="sse">Steady-state error</option></select>
-   <select id="pd"><option value="up">will increase</option><option value="down">will decrease</option><option value="same">will stay about the same</option></select>
-  </div>
-  <div class="btns"><button id="lock">Lock prediction</button><button id="chk" class="ghost">Check</button></div>
-  <div id="pout" class="chk tag">No prediction locked yet.</div>
- </div>
-</div>
 
-<div class="stack">
- <div class="panel">
-  <h2>Output vs setpoint</h2>
-  <canvas id="c1" role="img" aria-label="Closed-loop output and setpoint over time"></canvas>
-  <div class="legend"><b style="background:var(--out)"></b>Output y<b style="background:var(--sp)"></b>Setpoint r</div>
- </div>
- <div class="panel">
-  <h2>Control signal u</h2>
-  <canvas id="c2" role="img" aria-label="Control signal with saturation limits"></canvas>
-  <div class="legend"><b style="background:var(--u)"></b>u (after limit)<b style="background:var(--lim)"></b>Limits</div>
- </div>
- <div class="panel">
-  <h2>Live metrics</h2>
-  <div class="metrics" id="metrics"></div>
-  <p class="tag" id="mnote" style="margin-bottom:0"></p>
- </div>
- <div class="panel">
-  <h2>Block diagram</h2>
-  <div class="scroll"><svg viewBox="0 0 640 170" width="100%" style="min-width:520px" role="img" aria-label="Unity feedback loop: setpoint, summing junction, PID, saturation, plant, output">
-   <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="currentColor" style="color:var(--ink)"/></marker></defs>
-   <text x="6" y="64">r</text>
-   <path class="ln" d="M18 60H58" marker-end="url(#ar)"/>
-   <circle class="bx" cx="70" cy="60" r="12"/><text x="62" y="64">+</text><text x="66" y="84" style="font-size:11px">−</text>
-   <path class="ln" d="M82 60H112" marker-end="url(#ar)"/><text x="92" y="52">e</text>
-   <rect class="bx" x="114" y="36" width="130" height="48" rx="4"/><text x="128" y="56">Kp + Ki/s + Kd·s</text><text x="156" y="73" style="font-size:11px">PID</text>
-   <path class="ln" d="M244 60H284" marker-end="url(#ar)"/><text x="256" y="52">u*</text>
-   <rect class="bx" x="286" y="36" width="90" height="48" rx="4"/><text x="300" y="56">Limit</text><text x="298" y="73" style="font-size:11px">umin … umax</text>
-   <path class="ln" d="M376 60H416" marker-end="url(#ar)"/><text x="390" y="52">u</text>
-   <rect class="bx" x="418" y="36" width="130" height="48" rx="4"/><text x="446" y="56">Plant</text><text id="bdp" x="430" y="73" style="font-size:11px">K/(τs+1)</text>
-   <path class="ln" d="M548 60H620" marker-end="url(#ar)"/><text x="626" y="64">y</text>
-   <path class="ln" d="M590 60V138H70V74" marker-end="url(#ar)"/><text x="300" y="156">feedback</text>
-  </svg></div>
- </div>
- <div class="panel">
-  <h2>Validation checks</h2>
-  <div class="btns"><button id="val">Run the three checks</button></div>
-  <div id="vout"></div>
-  <details><summary>How each check works</summary>
-   <p class="tag">Plant K=1, τ=1 s, no saturation. (1) P only, Kp=9: simulate and measure the closed-loop time constant (time to 63.2% of the final value) and the steady-state error, then compare with τ/(1+KKp) and 1/(1+KKp). (2) PI with Kp=1, Ki=1: compare ωn=√(KKi/τ) and ζ=(1+KKp)/(2√(τKKi)) with the expected 1 and 1. (3) Several PI settings must all end with zero steady-state error for a step.</p></details>
- </div>
-</div>
-</div>
+  <div class="panel">
+    <h2>Output vs setpoint</h2>
+    <p class="desc">The setpoint steps from 0 to r at t = 0. The output y is what the plant does under control.</p>
+    <canvas id="c1" role="img" aria-label="Closed-loop output and setpoint versus time"></canvas>
+    <div class="legend"><span><i style="background:var(--curve)"></i>Output y(t)</span><span><i style="background:var(--muted)"></i>Setpoint r (dashed)</span></div>
+  </div>
+
+  <div class="panel">
+    <h2>Control signal u(t)</h2>
+    <p class="desc">What the controller sends to the plant, after the limit. If it flattens against a dashed line, the actuator is saturated.</p>
+    <canvas id="c2" role="img" aria-label="Control signal versus time with saturation limits"></canvas>
+    <div class="legend"><span><i style="background:var(--mark)"></i>u after the limit</span><span><i style="background:var(--mark2)"></i>u max and u min (dashed)</span></div>
+    <p class="note" id="mnote"></p>
+  </div>
+
+  <section class="read" id="cards" aria-live="polite" aria-label="Response metrics"></section>
+
+  <div class="panel">
+    <h2>Block diagram</h2>
+    <div class="wrap"><svg viewBox="0 0 640 170" width="100%" style="min-width:520px" role="img" aria-label="Feedback loop: setpoint, summing junction, PID, limit, plant, output, feedback">
+      <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="currentColor" style="color:var(--ink)"/></marker></defs>
+      <text x="6" y="64">r</text><path class="ln" d="M18 60H58" marker-end="url(#ar)"/>
+      <circle class="bx" cx="70" cy="60" r="12"/><text x="66" y="64">+</text><text x="66" y="86" style="font-size:11px">−</text>
+      <path class="ln" d="M82 60H112" marker-end="url(#ar)"/><text x="92" y="52">e</text>
+      <rect class="bx" x="114" y="36" width="130" height="48" rx="4"/><text x="128" y="56">Kp + Ki/s + Kd·s</text><text x="156" y="73" style="font-size:11px">PID</text>
+      <path class="ln" d="M244 60H284" marker-end="url(#ar)"/>
+      <rect class="bx" x="286" y="36" width="90" height="48" rx="4"/><text x="302" y="56">Limit</text><text x="296" y="73" style="font-size:11px">umin … umax</text>
+      <path class="ln" d="M376 60H416" marker-end="url(#ar)"/><text x="390" y="52">u</text>
+      <rect class="bx" x="418" y="36" width="130" height="48" rx="4"/><text x="446" y="56">Plant</text><text id="bdp" x="428" y="73" style="font-size:11px">K/(τs+1)</text>
+      <path class="ln" d="M548 60H620" marker-end="url(#ar)"/><text x="626" y="64">y</text>
+      <path class="ln" d="M590 60V138H70V74" marker-end="url(#ar)"/><text x="300" y="156">feedback</text>
+    </svg></div>
+  </div>
+
+  <div class="panel" id="predict">
+    <h2>Predict, then check</h2>
+    <p class="desc">The slider this question is about stays locked until you commit to a prediction. After you check, move the slider and watch the before and after values.</p>
+    <p class="desc" id="pQn"></p>
+    <p id="pQ" style="font-weight:600;margin:6px 0"></p>
+    <div class="opts" id="pOpts" role="radiogroup" aria-labelledby="pQ"></div>
+    <div class="row">
+      <button class="go" id="pGo">Check my prediction</button>
+      <button class="sec" id="pNext" hidden>Next question</button>
+      <button class="sec" id="pSkip">Skip and explore</button>
+    </div>
+    <p id="pResult" aria-live="polite"></p>
+    <div class="live" id="pLive" hidden></div>
+  </div>
+
+  <div class="panel">
+    <h2>Validation checks</h2>
+    <p class="desc">Plant K = 1, τ = 1 s, no saturation. "Your value" comes from the RK4 simulation of the loop (or from the formula for ωn and ζ), not from a typed-in answer.</p>
+    <div class="wrap"><table>
+      <thead><tr><th>Check</th><th>Expected</th><th>Your value</th><th>Result</th></tr></thead>
+      <tbody id="vbody"></tbody>
+    </table></div>
+  </div>
 </main>
 
 <script>
-(function(){
-"use strict";
-var $=function(id){return document.getElementById(id)};
-var ids=["K","tau","K2","wn","zeta","Kp","Ki","Kd","r","umax","umin","T"];
-var TF=0.02; // derivative filter time constant (s)
-var DT=0.001; // RK4 step (s)
+const $=id=>document.getElementById(id);
+const TF=0.02, DT=0.001;
+let type=1, C={}, M={}, last=null;
+/* id: [label, min, max, step, value, decimals, unit, hint] */
+const SL={
+  K:["Plant gain K",0.1,5,0.1,1,1,"","Output per unit input at steady state."],
+  tau:["Time constant τ",0.1,5,0.05,1,2," s","Bigger τ is a slower plant."],
+  K2:["Plant gain K",0.1,5,0.1,1,1,"","Output per unit input at steady state."],
+  wn:["Natural frequency ωn",0.5,10,0.1,2,1," rad/s","Higher ωn is a faster plant."],
+  zeta:["Damping ratio ζ",0.1,2,0.05,0.5,2,"","Below 1 the plant rings."],
+  Kp:["Kp (proportional)",0,20,0.1,9,1,"","Faster response, but leaves error on its own."],
+  Ki:["Ki (integral)",0,20,0.1,0,1,"","Removes steady-state error."],
+  Kd:["Kd (derivative)",0,5,0.05,0,2,"","Damps overshoot."],
+  r:["Setpoint r",0.1,10,0.1,1,1,"","Size of the step."],
+  umax:["u max",1,200,1,100,0,"","Upper limit of the control signal."],
+  umin:["u min",-200,0,1,-100,0,"","Lower limit of the control signal."],
+  T:["Simulation time",2,30,1,6,0," s","Metrics are read at the end."]
+};
+const sl=id=>{const d=SL[id];return `<div class="sl"><label for="${id}">${d[0]} <output id="${id}Out" for="${id}"></output></label><input id="${id}" type="range" min="${d[1]}" max="${d[2]}" step="${d[3]}" value="${d[4]}"><small>${d[7]}</small></div>`};
+$("p1sl").innerHTML=["K","tau"].map(sl).join("");
+$("p2sl").innerHTML=["K2","wn","zeta"].map(sl).join("");
+$("ctlsl").innerHTML=["Kp","Ki","Kd","r","umax","umin","T"].map(sl).join("");
+const ids=Object.keys(SL), val=id=>+$(id).value;
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const fmt=(x,d)=>x===null||x===undefined?"—":x.toFixed(d);
 
-// ---- simulation core: state s=[y, v, I, xd] ----
+/* ---- RK4 simulation of the closed loop. State s = [y, v, I, xd] ---- */
 function rhs(s,P){
-  var e=P.r-s[0];
-  var D=P.Kd*(e-s[3])/TF;
-  var uu=P.Kp*e+P.Ki*s[2]+D;
-  var u=Math.min(P.umax,Math.max(P.umin,uu));
-  var dI=e;
-  if(P.aw && uu!==u && (uu-u)*e>0) dI=0; // clamp integrator
-  var dy,dv;
-  if(P.type===1){dy=(P.K*u-s[0])/P.tau;dv=0;}
-  else{dy=s[1];dv=P.wn*P.wn*(P.K*u-s[0])-2*P.zeta*P.wn*s[1];}
+  const e=P.r-s[0], D=P.Kd*(e-s[3])/TF, uu=P.Kp*e+P.Ki*s[2]+D;
+  const u=Math.min(P.umax,Math.max(P.umin,uu));
+  let dI=e; if(P.aw && uu!==u && (uu-u)*e>0) dI=0;
+  let dy,dv;
+  if(P.type===1){dy=(P.K*u-s[0])/P.tau;dv=0}
+  else{dy=s[1];dv=P.wn*P.wn*(P.K*u-s[0])-2*P.zeta*P.wn*s[1]}
   return [dy,dv,dI,(e-s[3])/TF,u];
 }
 function simulate(P){
-  var n=Math.round(P.T/DT),stride=P.stride||5;
-  var s=[0,0,0,0],t=[],y=[],u=[];
-  for(var i=0;i<=n;i++){
-    var k1=rhs(s,P);
-    if(i%stride===0){t.push(i*DT);y.push(s[0]);u.push(k1[4]);}
-    var a=s.map(function(v,j){return j<4?v+DT/2*k1[j]:0});
-    var k2=rhs(a,P);
-    var b=s.map(function(v,j){return j<4?v+DT/2*k2[j]:0});
-    var k3=rhs(b,P);
-    var c=s.map(function(v,j){return j<4?v+DT*k3[j]:0});
-    var k4=rhs(c,P);
-    for(var j=0;j<4;j++)s[j]+=DT/6*(k1[j]+2*k2[j]+2*k3[j]+k4[j]);
-    if(!isFinite(s[0])||Math.abs(s[0])>1e9){break;}
+  const n=Math.round(P.T/DT), stride=P.stride||5;
+  let s=[0,0,0,0], t=[], y=[], u=[], bad=false;
+  const add=(a,k,h)=>a.map((v,j)=>j<4?v+h*k[j]:0);
+  for(let i=0;i<=n;i++){
+    const k1=rhs(s,P);
+    if(i%stride===0){t.push(i*DT);y.push(s[0]);u.push(k1[4])}
+    const k2=rhs(add(s,k1,DT/2),P), k3=rhs(add(s,k2,DT/2),P), k4=rhs(add(s,k3,DT),P);
+    for(let j=0;j<4;j++) s[j]+=DT/6*(k1[j]+2*k2[j]+2*k3[j]+k4[j]);
+    if(!isFinite(s[0])||Math.abs(s[0])>1e9){bad=true;break}
   }
-  return {t:t,y:y,u:u,diverged:!isFinite(s[0])||Math.abs(s[0])>1e9};
+  return {t,y,u,bad};
 }
 function metrics(res,r){
-  var t=res.t,y=res.y,n=y.length,m={rise:null,os:0,ts:null,sse:null};
-  var t10=null,t90=null,ymax=-Infinity,i;
-  for(i=0;i<n;i++){
+  const t=res.t,y=res.y,n=y.length,m={rise:null,os:0,ts:null,sse:null};
+  let t10=null,t90=null,ymax=-Infinity,lastOut=-1;
+  for(let i=0;i<n;i++){
     if(t10===null&&y[i]>=0.1*r)t10=t[i];
-    if(t90===null&&y[i]>=0.9*r){t90=t[i];}
+    if(t90===null&&y[i]>=0.9*r)t90=t[i];
     if(y[i]>ymax)ymax=y[i];
+    if(Math.abs(y[i]-r)>0.02*r)lastOut=i;
   }
   if(t10!==null&&t90!==null)m.rise=t90-t10;
   m.os=Math.max(0,(ymax-r)/r*100);
-  var last=-1;
-  for(i=0;i<n;i++)if(Math.abs(y[i]-r)>0.02*r)last=i;
-  if(last<n-1)m.ts=last<0?0:t[last+1];
+  if(lastOut<n-1)m.ts=lastOut<0?0:t[lastOut+1];
   m.sse=(r-y[n-1])/r*100;
   return m;
 }
-
-// ---- UI ----
-function val(id){return parseFloat($(id).value)}
 function params(){
-  var type=parseInt($("ptype").value,10);
-  return {type:type,K:type===1?val("K"):val("K2"),tau:val("tau"),wn:val("wn"),zeta:val("zeta"),
-    Kp:val("Kp"),Ki:val("Ki"),Kd:val("Kd"),r:val("r"),umax:val("umax"),umin:val("umin"),T:val("T"),aw:$("aw").checked};
+  return {type,K:type===1?val("K"):val("K2"),tau:val("tau"),wn:val("wn"),zeta:val("zeta"),Kp:val("Kp"),Ki:val("Ki"),Kd:val("Kd"),r:val("r"),umax:val("umax"),umin:val("umin"),T:val("T"),aw:$("aw").checked};
 }
-function fmt(x,d){return x===null||x===undefined?"—":x.toFixed(d)}
-function plot(cv,series,opt){
-  var dpr=window.devicePixelRatio||1,W=cv.clientWidth,H=cv.clientHeight;
-  cv.width=W*dpr;cv.height=H*dpr;
-  var g=cv.getContext("2d");g.scale(dpr,dpr);g.clearRect(0,0,W,H);
-  var cs=getComputedStyle(document.documentElement);
-  var col=function(n){return cs.getPropertyValue(n).trim()};
-  var L=44,R=8,Tp=8,B=24,pw=W-L-R,ph=H-Tp-B;
-  var ymin=Infinity,ymax=-Infinity,tmax=opt.T;
-  series.forEach(function(s){s.y.forEach(function(v){if(v<ymin)ymin=v;if(v>ymax)ymax=v;})});
-  (opt.extra||[]).forEach(function(v){if(v<ymin)ymin=v;if(v>ymax)ymax=v;});
-  if(opt.clip){ymin=Math.max(ymin,opt.clip[0]);ymax=Math.min(ymax,opt.clip[1]);}
-  if(ymin>0)ymin=0;
-  var pad=(ymax-ymin)*0.08||1;ymin-=pad*(ymin<0?1:0);ymax+=pad;
-  var X=function(t){return L+t/tmax*pw},Y=function(v){return Tp+(1-(v-ymin)/(ymax-ymin))*ph};
-  g.font="11px sans-serif";g.fillStyle=col("--mute");g.strokeStyle=col("--line");g.lineWidth=1;
-  for(var i=0;i<=4;i++){
-    var v=ymin+(ymax-ymin)*i/4,yy=Y(v);
-    g.beginPath();g.moveTo(L,yy);g.lineTo(W-R,yy);g.stroke();
-    g.textAlign="right";g.fillText(v.toFixed(Math.abs(ymax-ymin)<5?2:0),L-4,yy+4);
+
+/* ---- plotting, same look as Module 1 ---- */
+function plot(cv,ser,t,T,lines,ex,clip,yl){
+  const r=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;
+  cv.width=Math.round(w*r);cv.height=Math.round(h*r);
+  const c=cv.getContext("2d");c.setTransform(r,0,0,r,0,0);c.clearRect(0,0,w,h);
+  const L=52,R=16,Tp=18,B=46,pw=w-L-R,ph=h-Tp-B;
+  let lo=Infinity,hi=-Infinity;
+  ser.forEach(s=>s.y.forEach(v=>{if(v<lo)lo=v;if(v>hi)hi=v}));
+  ex.forEach(v=>{if(v<lo)lo=v;if(v>hi)hi=v});
+  lo=Math.max(lo,clip[0]);hi=Math.min(hi,clip[1]);
+  if(lo>0)lo=0; if(hi-lo<1e-6)hi=lo+1;
+  const pad=(hi-lo)*0.08;hi+=pad;if(lo<0)lo-=pad;
+  const X=v=>L+v/T*pw,Y=v=>Tp+(hi-v)/(hi-lo)*ph;
+  c.font="12px system-ui,Arial,sans-serif";c.lineWidth=1;
+  for(let i=0;i<=5;i++){
+    const tt=T*i/5;c.strokeStyle=C.line;c.beginPath();c.moveTo(X(tt),Tp);c.lineTo(X(tt),Tp+ph);c.stroke();
+    c.fillStyle=C.muted;c.textAlign="center";c.fillText(+tt.toFixed(1),X(tt),Tp+ph+16);
   }
-  for(i=0;i<=5;i++){
-    var tt=tmax*i/5;g.textAlign="center";g.fillText(tt.toFixed(tmax<10?1:0)+" s",X(tt),H-8);
+  for(let i=0;i<=4;i++){
+    const v=lo+(hi-lo)*i/4;c.strokeStyle=C.line;c.beginPath();c.moveTo(L,Y(v));c.lineTo(L+pw,Y(v));c.stroke();
+    c.fillStyle=C.muted;c.textAlign="right";c.fillText(Math.abs(hi-lo)<5?v.toFixed(2):v.toFixed(0),L-8,Y(v)+4);
   }
-  (opt.lines||[]).forEach(function(l){
-    g.strokeStyle=col(l.c);g.setLineDash([6,4]);g.lineWidth=1.5;
-    var yy=Y(l.v);g.beginPath();g.moveTo(L,yy);g.lineTo(W-R,yy);g.stroke();
-  });
-  g.setLineDash([]);
-  series.forEach(function(s){
-    g.strokeStyle=col(s.c);g.lineWidth=2;g.beginPath();
-    var started=false;
-    for(var k=0;k<s.y.length;k++){
-      var yv=Math.min(ymax,Math.max(ymin,s.y[k]));
-      var px=X(opt.t[k]),py=Y(yv);
-      if(!started){g.moveTo(px,py);started=true}else g.lineTo(px,py);
-    }
-    g.stroke();
+  c.fillStyle=C.ink;c.textAlign="center";c.fillText("Time (s)",L+pw/2,Tp+ph+36);
+  c.save();c.translate(12,Tp+ph/2);c.rotate(-Math.PI/2);c.fillText(yl,0,0);c.restore();
+  lines.forEach(l=>{c.strokeStyle=l.c;c.lineWidth=2;c.setLineDash([6,5]);c.beginPath();c.moveTo(L,Y(l.v));c.lineTo(L+pw,Y(l.v));c.stroke()});
+  c.setLineDash([]);
+  ser.forEach(s=>{
+    c.strokeStyle=s.c;c.lineWidth=3;c.beginPath();
+    s.y.forEach((v,i)=>{const px=X(t[i]),py=Y(Math.min(hi,Math.max(lo,v)));i?c.lineTo(px,py):c.moveTo(px,py)});
+    c.stroke();
   });
 }
 
-var last=null,baseline=null;
-function update(){
-  ids.forEach(function(id){var o=$(id).parentNode.querySelector("output");if(o)o.textContent=(+$(id).value).toFixed(id==="Kd"||id==="tau"||id==="zeta"?2:1).replace(/\.0$/,"")});
-  var P=params();
-  $("p1box").hidden=P.type!==1;$("p2box").hidden=P.type!==2;
-  $("bdp").textContent=P.type===1?"K/(τs+1)":"Kωn²/(s²+2ζωn s+ωn²)";
-  var res=simulate(P);last=res;
-  var m=metrics(res,P.r);last.m=m;
-  var lines=[{v:P.r,c:"--sp"}];
-  plot($("c1"),[{y:res.y,c:"--out"}],{t:res.t,T:P.T,lines:lines,extra:[P.r*1.0],clip:[-P.r*2,P.r*4]});
-  plot($("c2"),[{y:res.u,c:"--u"}],{t:res.t,T:P.T,lines:[{v:P.umax,c:"--lim"},{v:P.umin,c:"--lim"}],extra:[P.umax,P.umin],clip:[P.umin*1.5-1,P.umax*1.5+1]});
-  var items=[["Rise time (10–90%)",fmt(m.rise,3)+" s"],["Overshoot",fmt(m.os,1)+" %"],["Settling time (2%)",m.ts===null?"not settled":fmt(m.ts,2)+" s"],["Steady-state error",fmt(m.sse,2)+" %"]];
-  $("metrics").innerHTML=items.map(function(a){return '<div class="m"><div class="k">'+a[0]+'</div><div class="num">'+a[1]+'</div></div>'}).join("");
-  var peak=Math.max.apply(null,res.u),sat=res.u.some(function(v){return v>=P.umax-1e-9||v<=P.umin+1e-9});
-  $("mnote").textContent="Peak control signal: "+peak.toFixed(1)+(sat?" (hits the limit, so the loop is saturating)":"")+". Metrics are measured at the end of "+P.T+" s.";
-  $("warn").textContent=res.diverged?"The loop is unstable at these gains: the output grows without bound.":"";
+function draw(){
+  ids.forEach(id=>{$(id+"Out").textContent=val(id).toFixed(SL[id][5])+SL[id][6]});
+  C={line:css("--line"),muted:css("--muted"),ink:css("--ink"),curve:css("--curve"),m1:css("--mark"),m2:css("--mark2")};
+  $("bdp").textContent=type===1?"K/(τs+1)":"Kωn²/(s²+2ζωn s+ωn²)";
+  const P=params(), res=simulate(P); last=res; M=metrics(res,P.r);
+  plot($("c1"),[{y:res.y,c:C.curve}],res.t,P.T,[{v:P.r,c:C.muted}],[P.r],[-P.r*2,P.r*4],"Output y(t)");
+  plot($("c2"),[{y:res.u,c:C.m1}],res.t,P.T,[{v:P.umax,c:C.m2},{v:P.umin,c:C.m2}],[P.umax,P.umin],[P.umin*1.5-1,P.umax*1.5+1],"Control signal u(t)");
+  const peak=Math.max(...res.u), sat=res.u.some(v=>v>=P.umax-1e-9||v<=P.umin+1e-9);
+  $("mnote").textContent="Peak control signal: "+peak.toFixed(1)+(sat?". It hits the limit, so the loop is saturating.":".");
+  $("warn").textContent=res.bad?"Unstable: at these gains the output grows without bound.":"";
+  const cards=[["a","Rise time (10–90%)",fmt(M.rise,3)+" s","Time to go from 10% to 90% of the setpoint"],
+    ["b","Overshoot",fmt(M.os,1)+" %","How far the peak goes past the setpoint"],
+    ["c","Settling time (2%)",M.ts===null?"not settled":fmt(M.ts,2)+" s","Last time the output leaves the ±2% band"],
+    ["a","Steady-state error",fmt(M.sse,2)+" %","Setpoint minus final value, at the end of the run"]];
+  $("cards").innerHTML=cards.map(x=>`<div class="${x[0]}"><span>${x[1]}</span><b>${x[2]}</b><small>${x[3]}</small></div>`).join("");
+  renderLive();
 }
-ids.concat(["ptype","aw"]).forEach(function(id){$(id).addEventListener("input",update)});
-window.addEventListener("resize",update);
 
-var PRE={P:{Kp:9,Ki:0,Kd:0},PI:{Kp:1,Ki:1,Kd:0},PID:{Kp:9,Ki:6,Kd:0.5}};
-document.querySelectorAll("[data-pre]").forEach(function(b){b.addEventListener("click",function(){
-  var p=PRE[b.dataset.pre];
-  if(b.dataset.pre!=="PID"){$("ptype").value="1";$("K").value=1;$("tau").value=1;}
-  ["Kp","Ki","Kd"].forEach(function(k){$(k).value=p[k]});update();
-})});
-
-// ---- predict, then check ----
-var NAMES={rise:"rise time",os:"overshoot",ts:"settling time",sse:"steady-state error"};
-$("lock").addEventListener("click",function(){
-  baseline={m:Object.assign({},last.m),metric:$("pm").value,dir:$("pd").value};
-  $("pout").textContent="Locked: you predict "+NAMES[baseline.metric]+" "+$("pd").options[$("pd").selectedIndex].text+". Now change the sliders, then press Check.";
+/* ---- Predict, then check: the slider stays locked until a prediction is checked ---- */
+const QS=[
+ {s:"Ki",q:"With Ki at 0 the loop leaves a steady-state error. If you raise Ki, the steady-state error will…",o:["stay the same","go toward zero","grow"],a:1,
+  e:"The integral keeps adding up the error until the error is zero. Overshoot may appear as the price.",
+  obs:()=>[["Steady-state error",fmt(M.sse,2)+" %"],["Overshoot",fmt(M.os,1)+" %"]]},
+ {s:"Kd",q:"When the response overshoots and you raise Kd, the overshoot will usually…",o:["grow","fall","stay the same"],a:1,
+  e:"Derivative acts on how fast the error changes, so it brakes the approach to the setpoint.",
+  obs:()=>[["Overshoot",fmt(M.os,1)+" %"],["Settling time",M.ts===null?"not settled":fmt(M.ts,2)+" s"]]},
+ {s:"Kp",q:"With P only (Ki = 0, Kd = 0), if you raise Kp, the steady-state error will…",o:["shrink but not reach zero","reach exactly zero","grow"],a:0,
+  e:"For a first-order plant the error is 1/(1 + K·Kp). It shrinks as Kp grows but never reaches zero.",
+  obs:()=>[["Steady-state error",fmt(M.sse,2)+" %"],["Rise time",fmt(M.rise,3)+" s"]]}
+];
+let qi=0,checked=false,baseline=null;
+function lock(id){
+  ["Kp","Ki","Kd"].forEach(k=>$(k).disabled=(k===id));
+  $("lockMsg").textContent=id?"The "+id+" slider is locked until you make a prediction in the box below.":"";
+}
+function renderLive(){
+  const b=$("pLive");
+  if(!checked){b.hidden=true;return}
+  const now=QS[qi].obs();b.hidden=false;
+  b.innerHTML=now.map((n,i)=>`<div><b>${n[0]}:</b> before ${baseline[i][1]} → now ${n[1]}</div>`).join("");
+}
+function predict(){
+  const p=QS[qi];checked=false;baseline=null;
+  $("pQn").textContent="Question "+(qi+1)+" of "+QS.length;$("pQ").textContent=p.q;$("pResult").textContent="";
+  $("pOpts").innerHTML=p.o.map((o,i)=>`<label><input type="radio" name="pred" value="${i}"> ${o}</label>`).join("");
+  $("pGo").disabled=false;$("pNext").hidden=true;$("pSkip").hidden=false;
+  lock(p.s);renderLive();
+}
+$("pGo").addEventListener("click",()=>{
+  const p=QS[qi],sel=document.querySelector("input[name=pred]:checked");
+  if(!sel){$("pResult").textContent="Pick an answer first.";return}
+  $("pResult").textContent=(+sel.value===p.a?"Correct. ":"Not quite. ")+p.e+" Now move the slider and watch the numbers below.";
+  document.querySelectorAll("input[name=pred]").forEach(r=>r.disabled=true);
+  baseline=p.obs();checked=true;$("pGo").disabled=true;$("pNext").hidden=false;$("pSkip").hidden=true;
+  lock(null);renderLive();
 });
-$("chk").addEventListener("click",function(){
-  if(!baseline){$("pout").textContent="Lock a prediction first.";return}
-  var a=baseline.m[baseline.metric],b=last.m[baseline.metric];
-  if(a===null||b===null){$("pout").textContent="One of the two runs has no value for this metric (for example it never settled), so it can't be compared.";return}
-  var tol=baseline.metric==="os"||baseline.metric==="sse"?0.5:0.02*Math.max(Math.abs(a),0.1);
-  var actual=Math.abs(b-a)<=tol?"same":(b>a?"up":"down");
-  var ok=actual===baseline.dir;
-  $("pout").innerHTML='<span class="'+(ok?"pass":"fail")+'">'+(ok?"Your prediction was right.":"Not this time.")+"</span> "+NAMES[baseline.metric]+" went from "+a.toFixed(2)+" to "+b.toFixed(2)+". Ask why: which term of the controller caused that?";
-});
+$("pNext").addEventListener("click",()=>{qi=(qi+1)%QS.length;predict()});
+$("pSkip").addEventListener("click",()=>{lock(null);$("pSkip").hidden=true;$("pResult").textContent="Unlocked without a prediction. You can still pick an answer and check it."});
 
-// ---- validation checks (K=1, tau=1, no saturation) ----
+/* ---- Validation checks: K = 1, tau = 1, no saturation ---- */
 function base(o){return Object.assign({type:1,K:1,tau:1,wn:2,zeta:.5,Kp:0,Ki:0,Kd:0,r:1,umax:1e9,umin:-1e9,T:5,aw:false,stride:1},o)}
-function runChecks(){
-  var out=[],ok=function(b){return '<span class="'+(b?"pass":"fail")+'">'+(b?"PASS":"FAIL")+"</span>"};
-  // 1
-  var r1=simulate(base({Kp:9,T:2})),yf=r1.y[r1.y.length-1],tgt=0.632121*yf,tc=null;
-  for(var i=0;i<r1.y.length;i++){if(r1.y[i]>=tgt){tc=r1.t[i];break}}
-  var sse=(1-yf)*100,p1=Math.abs(tc-0.1)<0.005&&Math.abs(sse-10)<0.2;
-  out.push(ok(p1)+" <b>1 · P only, Kp=9.</b> Closed-loop τ: simulated "+tc.toFixed(3)+" s, expected 0.100 s. Steady-state error: simulated "+sse.toFixed(2)+"%, expected 10.00%.");
-  // 2
-  var K=1,tau=1,Kp=1,Ki=1,wn=Math.sqrt(K*Ki/tau),z=(1+K*Kp)/(2*Math.sqrt(tau*K*Ki));
-  var r2=simulate(base({Kp:1,Ki:1,T:15})),e2=Math.abs(1-r2.y[r2.y.length-1])*100;
-  var p2=Math.abs(wn-1)<1e-9&&Math.abs(z-1)<1e-9&&e2<0.1;
-  out.push(ok(p2)+" <b>2 · PI, Kp=1, Ki=1.</b> ωn = "+wn.toFixed(3)+" rad/s (expected 1), ζ = "+z.toFixed(3)+" (expected 1). Simulated error after 15 s: "+e2.toFixed(3)+"%.");
-  // 3
-  var combos=[[0.5,2],[3,0.7],[1,5],[2,1]],all=true,txt=[];
-  combos.forEach(function(c){
-    var r3=simulate(base({Kp:c[0],Ki:c[1],T:40,stride:5})),e=Math.abs(1-r3.y[r3.y.length-1])*100;
-    if(!(e<0.5))all=false;txt.push("Kp="+c[0]+", Ki="+c[1]+" → "+e.toFixed(3)+"%");
-  });
-  out.push(ok(all)+" <b>3 · Any PI gives zero steady-state error.</b> "+txt.join("; ")+".");
-  $("vout").innerHTML=out.map(function(s){return '<div class="chk">'+s+"</div>"}).join("");
+function validate(){
+  const rows=[];
+  const r1=simulate(base({Kp:9,T:2})),yf=r1.y[r1.y.length-1],tg=0.632121*yf;
+  let tc=null;for(let i=0;i<r1.y.length;i++){if(r1.y[i]>=tg){tc=r1.t[i];break}}
+  const se=(1-yf)*100;
+  rows.push(["1. P only, Kp = 9: closed-loop τ","0.1000 s",tc.toFixed(4)+" s",Math.abs(tc-0.1)<0.005]);
+  rows.push(["1. P only, Kp = 9: steady-state error","10.00 %",se.toFixed(2)+" %",Math.abs(se-10)<0.2]);
+  const wn=Math.sqrt(1*1/1),z=(1+1*1)/(2*Math.sqrt(1*1*1));
+  rows.push(["2. PI, Kp = 1, Ki = 1: ωn = √(K·Ki/τ)","1.000 rad/s",wn.toFixed(3)+" rad/s",Math.abs(wn-1)<1e-9]);
+  rows.push(["2. PI, Kp = 1, Ki = 1: ζ","1.000",z.toFixed(3),Math.abs(z-1)<1e-9]);
+  let worst=0;
+  [[0.5,2],[3,0.7],[1,5],[2,1]].forEach(g=>{const r=simulate(base({Kp:g[0],Ki:g[1],T:40,stride:5}));worst=Math.max(worst,Math.abs(1-r.y[r.y.length-1])*100)});
+  rows.push(["3. Four different PI settings: worst steady-state error","0 %",worst.toFixed(3)+" %",worst<0.5]);
+  $("vbody").innerHTML=rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td><span class="pill ${r[3]?"pass":"fail"}">${r[3]?"Pass":"Fail"}</span></td></tr>`).join("");
 }
-$("val").addEventListener("click",runChecks);
-update();
-})();
+
+/* ---- wiring ---- */
+function setType(t){
+  type=t;$("b1").setAttribute("aria-pressed",t===1);$("b2").setAttribute("aria-pressed",t===2);
+  $("p1sl").hidden=t!==1;$("p2sl").hidden=t!==2;draw();
+}
+$("b1").addEventListener("click",()=>setType(1));
+$("b2").addEventListener("click",()=>setType(2));
+ids.concat(["aw"]).forEach(id=>$(id).addEventListener("input",draw));
+const PRE={P:[9,0,0],PI:[1,1,0],PID:[9,6,0.5]};
+document.querySelectorAll("[data-pre]").forEach(b=>b.addEventListener("click",()=>{
+  const p=PRE[b.dataset.pre];
+  if(b.dataset.pre!=="PID"){$("K").value=1;$("tau").value=1;setType(1)}
+  $("Kp").value=p[0];$("Ki").value=p[1];$("Kd").value=p[2];draw();
+}));
+window.addEventListener("resize",draw);
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",draw);
+predict();draw();validate();
 </script>
 </body>
 </html>

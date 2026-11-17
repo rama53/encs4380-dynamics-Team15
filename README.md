@@ -4,7 +4,6 @@ An interactive web toolkit for exploring sensor dynamic characteristics, develop
 ## Live Website
 
 [Open the Dynamic Characteristics Toolkit](https://rama53.github.io/encs4380-dynamics-Team15/)
--[Control: PID Control Toolkit (Homework 2)](https://rama53.github.io/encs4380-dynamics-Team15/control/)
 
 ## Team Members and Responsibilities
 

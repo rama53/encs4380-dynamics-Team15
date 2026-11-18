@@ -33,7 +33,7 @@ An interactive web toolkit for exploring sensor dynamic characteristics, develop
 ## Control Modules (Homework 2)
 
 1. **P1: PID Playground:** Tune Kp, Ki and Kd on a first- or second-order plant, and explore the output, control signal, rise time, overshoot, settling time, steady-state error and the three validation checks.
-2. **P2: A Slow Sensor in the Loop:** Add a first-order sensor to the feedback path, and compare the true output with what the sensor reports as its time constant grows until the loop oscillates.
+2. **P2: A Slow Sensor in the Loop:** Compare the true output with the measured output of a PID loop containing a first-order feedback sensor. Explore sensor lag, overshoot and oscillation using live plots, fixed-step RK4, demo presets and Predict, then check experiments. [Open P2](https://rama53.github.io/encs4380-dynamics-Team15/control/p2/).
 3. **P3: Digital PID:** Explore the sampling time, anti-windup, and the stair-step control signal, and copy the generated Arduino loop for your gains.
 4. **P4: Tuning Challenge:** Tune the gains of a hidden random plant to meet a specification, with pass or fail for each part and a score.
 5. **My System:** Apply the controller to the Micromouse drive motor, with the source of K and τ, the chosen specification, the final gains and the Arduino code.
@@ -69,6 +69,12 @@ An interactive web toolkit for exploring sensor dynamic characteristics, develop
 - Helped write the RK4 closed-loop simulation and the page layout
 - Explained the PID equations and the validation checks
 - I reviewed the code and can explain every equation
+
+**P2:**
+
+- Used ChatGPT/Codex to help write and organize the HTML, CSS and JavaScript in the existing P1 and Homework 1 style.
+- Used AI assistance to implement and explain the slow-sensor feedback model and fixed-step RK4 simulation.
+- Used AI assistance to design numerical checks and test the plots, controls, actuator limits and prediction experiments.
 
 ## Modules Screenshots
 

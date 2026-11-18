@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Explore how sensor lag changes a PID feedback loop. Compare the true output and measured output in a live numerical simulation.">
+  <title>P2: A slow sensor in the loop</title>
+  <link rel="stylesheet" href="../../assets/site.css">
+  <link rel="stylesheet" href="styles.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+<nav class="site-nav" aria-label="Main navigation"><a href="../../">Home</a><a href="../../module1/">Module 1</a><a href="../../module2/">Module 2</a><a href="../../module3/">Module 3</a><a href="../../module4/">Module 4</a><a href="../" aria-current="page">Control</a></nav>
+<main>
+  <h1>P2: A slow sensor in the loop</h1>
+  <p class="sub">The plant has a true output, but the controller only sees what its sensor reports. Slow that sensor down and watch the loop react to old information. <span class="formula">τs·ẏm + ym = y, e = r − ym</span></p>
+  <p class="links"><b>Control toolkit:</b><a href="../">P1 Playground</a><a href="./" aria-current="page">P2 Slow sensor</a><a href="../p3.html">P3 Digital PID</a><a href="../p4.html">P4 Tuning challenge</a><a href="../my-system.html">My system</a></p>
+  <noscript><p class="panel">Enable JavaScript to run the simulation and use the controls.</p></noscript>
+
+  <section class="panel" aria-label="Plant, sensor and controller settings">
+    <div class="seg" role="group" aria-label="Plant type">
+      <button id="b1" aria-pressed="true">First-order plant</button>
+      <button id="b2" aria-pressed="false">Second-order plant</button>
+    </div>
+    <div class="sliders" id="p1sl"></div>
+    <div class="sliders" id="p2sl" hidden></div>
+    <div class="sensor-controls">
+      <div id="sensorSl"></div>
+      <p class="note">At τs = 0 the measurement is ideal: ym = y. Try a prediction <a href="#predict">before changing the sensor</a>.</p>
+    </div>
+    <div class="sliders" id="ctlsl"></div>
+    <label class="chk"><input type="checkbox" id="aw" checked> Anti-windup: prevent integral build-up at control limits</label>
+    <div class="row" id="presets" style="margin-top:14px">
+      <button class="sec" data-lag="0.05">Fast sensor</button>
+      <button class="sec" data-lag="0.3">Slow sensor</button>
+      <button class="sec" data-lag="1">Oscillating loop</button>
+      <button class="sec" data-lag="0">Ideal sensor</button>
+      <button class="sec" id="reset">Reset</button>
+    </div>
+    <p class="note">Demo presets use K = 1, τ = 1 s, Kp = 1, Ki = 5, Kd = 0, r = 1, control limits ±10 and a 30 s run. Only the sensor lag changes. Other gains may stay stable as lag grows.</p>
+    <p class="warn" id="warn" aria-live="polite"></p>
+    <p class="note" id="compute" role="status">Preparing the simulation…</p>
+  </section>
+
+  <section class="panel" aria-labelledby="output-title">
+    <h2 id="output-title">True output and sensor reading</h2>
+    <p class="desc">Blue is what the plant really does. Orange is what the controller thinks it does. The setpoint steps from 0 to r at t = 0.</p>
+    <canvas id="c1" role="img" aria-label="True output, measured output and setpoint versus time"></canvas>
+    <div class="legend"><span><i style="background:var(--curve)"></i>True output y</span><span><i style="background:var(--mark)"></i>Measured output ym (dashed)</span><span><i style="background:var(--muted)"></i>Setpoint r (dashed)</span></div>
+    <p class="note cursor-readout" id="cursorReadout">Move over the plot to read a point.</p>
+  </section>
+
+  <section class="panel" aria-labelledby="control-title">
+    <h2 id="control-title">Control signal u(t)</h2>
+    <p class="desc">The PID acts on r − ym. A slow reading can keep the actuator pushing even after the true output has passed the target.</p>
+    <canvas id="c2" role="img" aria-label="Control signal versus time with upper and lower actuator limits"></canvas>
+    <div class="legend"><span><i style="background:var(--mark)"></i>Control signal u</span><span><i style="background:var(--mark2)"></i>u max and u min (dashed)</span></div>
+    <p class="note" id="controlNote"></p>
+  </section>
+
+  <section class="read" id="cards" aria-live="polite" aria-label="True output response metrics"></section>
+  <p class="note" id="measurementNote"></p>
+  <p class="note" id="stabilityNote"></p>
+
+  <section class="panel" aria-labelledby="diagram-title">
+    <h2 id="diagram-title">Block diagram</h2>
+    <p class="desc">The sensor belongs in the return path. The true output still comes from the plant.</p>
+    <div class="wrap diagram-wrap">
+      <svg viewBox="0 0 690 200" width="100%" role="img" aria-label="Setpoint minus measured output feeds PID, actuator limit and plant. True output goes through a first-order sensor and the measured output returns to the summing junction.">
+        <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
+        <text x="8" y="57">r</text><path class="ln" d="M20 53H58" marker-end="url(#ar)"/>
+        <circle class="bx" cx="70" cy="53" r="12"/><text x="66" y="57">+</text><text x="54" y="82">−</text>
+        <path class="ln" d="M82 53H132" marker-end="url(#ar)"/><text x="86" y="18">e = r − ym</text>
+        <rect class="bx" x="134" y="30" width="125" height="48" rx="4"/><text x="183" y="50">PID</text><text x="160" y="67" class="svg-small">Kp, Ki, Kd</text>
+        <path class="ln" d="M259 53H299" marker-end="url(#ar)"/>
+        <rect class="bx" x="301" y="30" width="100" height="48" rx="4"/><text x="335" y="50">Limit</text><text x="311" y="67" class="svg-small">umin … umax</text>
+        <path class="ln" d="M401 53H441" marker-end="url(#ar)"/><text x="418" y="43">u</text>
+        <rect class="bx" x="443" y="30" width="145" height="48" rx="4"/><text x="499" y="50">Plant</text><text id="bdp" x="474" y="67" class="svg-small">K/(τ·s + 1)</text>
+        <path class="ln" d="M588 53H660" marker-end="url(#ar)"/><text x="641" y="31">true y</text>
+        <path class="ln" d="M622 53V150H460" marker-end="url(#ar)"/>
+        <rect class="bx sensor-box" x="280" y="126" width="180" height="48" rx="4"/><text x="323" y="145">Slow sensor</text><text x="328" y="163" class="svg-small">1/(τs·s + 1)</text>
+        <path class="ln" d="M280 150H70V67" marker-end="url(#ar)"/><text x="108" y="138">measured ym</text>
+      </svg>
+    </div>
+  </section>
+
+  <section class="panel" id="predict" aria-labelledby="prediction-title">
+    <h2 id="prediction-title">Predict, then check</h2>
+    <p class="desc">Choose an answer first. Checking loads the stated experiment so you can compare the prediction with the actual curves. Then explore with the sliders.</p>
+    <p class="desc" id="pQn"></p>
+    <p class="experiment" id="pSetup"></p>
+    <p id="pQ" style="font-weight:600;margin:6px 0"></p>
+    <div class="opts" id="pOpts" role="radiogroup" aria-labelledby="pQ"></div>
+    <div class="row"><button class="go" id="pGo">Check my prediction</button><button class="sec" id="pNext" hidden>Next question</button></div>
+    <p id="pResult" aria-live="polite"></p>
+    <div class="live" id="pLive" hidden aria-live="polite"></div>
+  </section>
+
+  <section class="panel" aria-labelledby="explanation-title">
+    <h2 id="explanation-title">What the simulation is doing</h2>
+    <p class="desc">A speed sensor measures the motor. The PID reacts to that measurement, so a delayed reading can change the motor's real response.</p>
+    <ol class="explanation">
+      <li><b>Plant:</b> <span class="formula" id="plantEquation">ẏ = (K·u − y)/τ</span>. This produces the true output y.</li>
+      <li><b>Sensor:</b> <span class="formula">ẏm = (y − ym)/τs</span>. A larger τs makes the reading catch up more slowly. At τs = 0, ym = y directly.</li>
+      <li><b>Controller:</b> <span class="formula">e = r − ym, uraw = Kp·e + Ki·I + D, Ī = e</span> in unsaturated operation. The actuator limits uraw to produce u.</li>
+    </ol>
+    <details><summary>Derivative filtering, stability and reading the metrics</summary>
+      <p>The derivative uses the same 0.02 s filter as P1: <span class="formula">q̇ = (e − q)/0.02, D = Kd·(e − q)/0.02</span>. This makes the derivative finite at the setpoint step.</p>
+      <p>With anti-windup on and Ki &gt; 0, a tracking correction unwinds the integral when the actuator saturates: <span class="formula">Ī = e + (u − uraw)/(Ki·0.1)</span>. The tracking time is 0.1 s. When u = uraw, the correction is zero and Ī = e. P2 uses this back-calculation method; P1 uses conditional integration.</p>
+      <p>The plant, sensor, integral and derivative filter are integrated together with fixed-step RK4, using Δt = 0.00005 s (0.05 ms). Each step evaluates four slopes. The calculation runs directly in the page. A validation check repeats a reference run with half the step to check that the output agrees.</p>
+      <p>For the first-order PI demo, the unsaturated characteristic polynomial is <span class="formula">τ·τs·s³ + (τ + τs)·s² + (1 + K·Kp)·s + K·Ki</span>. With K = τ = Kp = 1 and Ki = 5, the stability boundary is τs = 2/3 s. Above it, oscillations grow until actuator limits change the behaviour.</p>
+      <p>Metrics describe the <b>true output</b>. Rise time uses 10–90% of the setpoint. Settling requires the output to stay within ±2% for the rest of the run, with at least 0.5 s observed inside the band. Final error is the error at the end of this run; an oscillating or unfinished response has no confirmed steady-state error.</p>
+    </details>
+  </section>
+
+  <section class="panel" aria-labelledby="validation-title">
+    <h2 id="validation-title">Validation checks</h2>
+    <p class="desc">These fixed reference cases check the numerical solver and sensor feedback independently of your current slider settings. The values are calculated when the checks run.</p>
+    <button class="sec" id="runChecks">Run checks again</button>
+    <p class="note" id="validationStatus" role="status">Preparing checks…</p>
+    <div class="wrap"><table><thead><tr><th scope="col">Check</th><th scope="col">Expected</th><th scope="col">Calculated</th><th scope="col">Result</th></tr></thead><tbody id="vbody"></tbody></table></div>
+  </section>
+</main>
+</body>
+</html>

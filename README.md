@@ -20,8 +20,8 @@ An interactive web toolkit for exploring sensor dynamic characteristics, develop
 |---|---|
 | Itidal Fares | P1: PID Playground |
 | Omar Shobaki | P2: A Slow Sensor in the Loop |
-| NAME | P3: Digital PID |
-| NAME | P4: Tuning Challenge and My System |
+| Rama Anabtawi | P3: Digital PID |
+| Rahaf Doufash | P4: Tuning Challenge and My System |
 
 ## Modules
 

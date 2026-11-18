@@ -73,7 +73,6 @@ An interactive web toolkit for exploring sensor dynamic characteristics, develop
 **P2:**
 
 - Helping write and organize the HTML, CSS, and JavaScript code
-- Helping match the design of P1 and the Homework 1 modules
 - Explaining the PID, slow-sensor feedback, and RK4 equations
 - Helping debug and test the live plots, prediction questions, and validation checks
 

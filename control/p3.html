@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Explore a digital PID controller that samples every Ts seconds. See how sampling time, anti-windup and gains change the loop, and copy the Arduino code.">
+  <title>P3: Digital PID</title>
+  <link rel="stylesheet" href="../assets/site.css">
+  <link rel="stylesheet" href="p2/styles.css">
+  <link rel="stylesheet" href="p3.css">
+  <script src="p3.js" defer></script>
+</head>
+<body>
+<nav class="site-nav" aria-label="Main navigation"><a href="../">Home</a><a href="../module1/">Module 1</a><a href="../module2/">Module 2</a><a href="../module3/">Module 3</a><a href="../module4/">Module 4</a><a href="./" aria-current="page">Control</a></nav>
+<main>
+  <h1>P3: Digital PID</h1>
+  <p class="sub">A real controller reads the sensor every Ts seconds and holds its output until the next sample. Try 10 ms and 500 ms with the default gains to see when the output starts oscillating. <span class="formula">u[k] = Kp·e[k] + Ki·Ts·Σe[j] + Kd·(e[k] − e[k−1])/Ts</span></p>
+  <p class="links"><b>Control toolkit:</b><a href="./">P1 Playground</a><a href="p2/">P2 Slow sensor</a><a href="p3.html" aria-current="page">P3 Digital PID</a><a href="p4.html">P4 Tuning challenge</a><a href="my-system.html">My system</a></p>
+  <noscript><p class="panel">Enable JavaScript to run the simulation and use the controls.</p></noscript>
+
+  <section class="panel" aria-label="Plant and controller settings">
+    <div class="seg" role="group" aria-label="Plant type">
+      <button id="b1" aria-pressed="true">First-order plant</button>
+      <button id="b2" aria-pressed="false">Second-order plant</button>
+    </div>
+    <div class="sliders" id="p1sl"></div>
+    <div class="sliders" id="p2sl" hidden></div>
+    <div class="sliders" id="ctlsl"></div>
+    <label class="chk"><input type="checkbox" id="aw" checked> Anti-windup (conditional integration)</label>
+    <div class="row" id="presets" style="margin-top:14px">
+      <button class="sec" data-gains="9,0,0">P only, Kp = 9</button>
+      <button class="sec" data-gains="1,1,0">PI, Kp = 1, Ki = 1</button>
+      <button class="sec" data-ts="-3">Ts = 1 ms</button>
+      <button class="sec" data-ts="-2">Ts = 10 ms</button>
+      <button class="sec" data-ts="-1">Ts = 100 ms</button>
+      <button class="sec" data-ts="-0.3010299956639812">Ts = 500 ms</button>
+      <button class="sec" id="reset">Reset</button>
+    </div>
+    <p class="note">The two gain presets use K = 1, τ = 1 s and a ±50 limit, so the limit does not interfere. The demo start is P only, Kp = 9, Ts = 10 ms, limit ±10, r = 1 and a 10 s run.</p>
+    <p class="warn" id="warn" aria-live="polite"></p>
+    <p class="note" id="compute" role="status"></p>
+  </section>
+
+  <section class="panel" aria-labelledby="output-title">
+    <h2 id="output-title">Output response</h2>
+    <p class="desc">The setpoint steps from 0 to r at t = 0. The plant runs continuously, but the controller only acts at each sample.</p>
+    <canvas id="c1" role="img" aria-label="Output and setpoint versus time"></canvas>
+    <div class="legend"><span><i style="background:var(--curve)"></i>Output y</span><span><i style="background:var(--muted)"></i>Setpoint r (dashed)</span></div>
+  </section>
+
+  <section class="panel" aria-labelledby="control-title">
+    <h2 id="control-title">Control signal u(t)</h2>
+    <p class="desc">Each value is held for one sampling period, which gives the stair-step shape.</p>
+    <canvas id="c2" role="img" aria-label="Stair-step control signal versus time with upper and lower limits"></canvas>
+    <div class="legend"><span><i style="background:var(--mark)"></i>Control signal u</span><span><i style="background:var(--mark2)"></i>Limits ±U (dashed)</span></div>
+  </section>
+
+  <section class="read" id="cards" aria-live="polite" aria-label="Response metrics"></section>
+  <p class="note" id="stabilityNote"></p>
+
+  <section class="panel" aria-labelledby="sweep-title">
+    <h2 id="sweep-title">Performance as Ts grows</h2>
+    <p class="desc">Each point repeats the whole run with your gains and a different Ts. The dashed vertical line is your current Ts. A cross on the settling plot marks a run that did not settle within the selected duration. A cross on the overshoot plot marks a run stopped by the numerical guard.</p>
+    <div class="two">
+      <canvas id="c3" role="img" aria-label="Overshoot versus sampling time"></canvas>
+      <canvas id="c4" role="img" aria-label="Settling time versus sampling time"></canvas>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="code-title">
+    <h2 id="code-title">Arduino code for these gains</h2>
+    <p class="desc">The code updates with the sliders. Implement <code>readSensor()</code> and <code>writeActuator()</code> for your hardware. The simulated actuator uses symmetric limits. For the Micromouse speed loop, check how your actuator mapping enforces the required 0–100% PWM range.</p>
+    <pre id="code" tabindex="0"></pre>
+    <div class="row" style="margin-top:10px"><button class="sec" id="copy">Copy code</button><span class="note" id="copied" role="status"></span></div>
+  </section>
+
+  <section class="panel" aria-labelledby="diagram-title">
+    <h2 id="diagram-title">Block diagram</h2>
+    <p class="desc">The controller works on samples. The hold keeps u constant until the next sample.</p>
+    <div class="wrap diagram-wrap">
+      <svg viewBox="0 0 690 200" width="100%" role="img" aria-label="Setpoint minus sampled output feeds a digital PID, an actuator limit and a zero-order hold, then the plant. The output is sampled every Ts and returned to the summing junction.">
+        <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
+        <text x="8" y="57">r</text><path class="ln" d="M20 53H58" marker-end="url(#ar)"/>
+        <circle class="bx" cx="70" cy="53" r="12"/><text x="66" y="57">+</text><text x="54" y="82">−</text>
+        <path class="ln" d="M82 53H132" marker-end="url(#ar)"/><text x="92" y="18">e[k]</text>
+        <rect class="bx sensor-box" x="134" y="30" width="110" height="48" rx="4"/><text x="160" y="50">Digital PID</text><text x="152" y="67" class="svg-small">every Ts seconds</text>
+        <path class="ln" d="M244 53H266" marker-end="url(#ar)"/>
+        <rect class="bx" x="268" y="30" width="90" height="48" rx="4"/><text x="295" y="50">Limit</text><text x="284" y="67" class="svg-small">−U … +U</text>
+        <path class="ln" d="M358 53H380" marker-end="url(#ar)"/>
+        <rect class="bx" x="382" y="30" width="90" height="48" rx="4"/><text x="404" y="50">Hold</text><text x="394" y="67" class="svg-small">u constant</text>
+        <path class="ln" d="M472 53H494" marker-end="url(#ar)"/>
+        <rect class="bx" x="496" y="30" width="100" height="48" rx="4"/><text x="527" y="50">Plant</text><text x="520" y="67" class="svg-small" id="diagramPlant">K/(τ·s + 1)</text>
+        <path class="ln" d="M596 53H660" marker-end="url(#ar)"/><text x="641" y="31">y</text>
+        <path class="ln" d="M628 53V150H70V67" marker-end="url(#ar)"/><text x="260" y="140">y sampled every Ts</text>
+      </svg>
+    </div>
+  </section>
+
+  <section class="panel" id="predict" aria-labelledby="prediction-title">
+    <h2 id="prediction-title">Predict, then check</h2>
+    <p class="desc">Choose an answer first. Checking loads the stated experiment so you can compare your prediction with the real curves.</p>
+    <p class="desc" id="pQn"></p>
+    <p class="experiment" id="pSetup"></p>
+    <p id="pQ" style="font-weight:600;margin:6px 0"></p>
+    <div class="opts" id="pOpts" role="radiogroup" aria-labelledby="pQ"></div>
+    <div class="row"><button class="go" id="pGo">Check my prediction</button><button class="sec" id="pNext" hidden>Next question</button></div>
+    <p id="pResult" aria-live="polite"></p>
+    <div class="live" id="pLive" hidden aria-live="polite"></div>
+  </section>
+
+  <section class="panel" aria-labelledby="explanation-title">
+    <h2 id="explanation-title">What the simulation is doing</h2>
+    <ol class="explanation">
+      <li><b>Plant:</b> <span class="formula" id="plantEquation">ẏ = (K·u − y)/τ</span>. It runs continuously, so it is integrated with RK4 in steps of at most 1 ms.</li>
+      <li><b>Sampling:</b> every Ts seconds the controller reads <span class="formula">e = r − y</span> and computes a new u. That u is held until the next sample.</li>
+      <li><b>Controller:</b> <span class="formula">u = Kp·e + I + Kd·(e − eprev)/Ts, I ← I + Ki·Ts·e</span>. The output is then limited to ±U.</li>
+    </ol>
+    <details><summary>Anti-windup, the Ts limit and reading the metrics</summary>
+      <p>The controller calculates a trial integral and clamps the resulting command to the actuator range. With anti-windup on, it discards the trial integral if the command exceeds a limit and the error pushes it farther past that limit. With anti-windup off, the integral can build up during saturation and increase overshoot.</p>
+      <p>For P only on a first-order plant, the sampled loop has pole <span class="formula">z = a − K·Kp·(1 − a)</span> with <span class="formula">a = e<sup>−Ts/τ</sup></span>. It leaves the unit circle when <span class="formula">K·Kp &gt; (1 + a)/(1 − a)</span>. With K = τ = 1 and Kp = 9, that happens at Ts ≈ 0.22 s.</p>
+      <p>Metrics describe the output y. Rise time uses 10–90% of r. Overshoot is measured against r. Settling requires y to stay within ±2% of r for the rest of the run. End-of-run error averages the error over the last 5% of the run. It estimates steady-state error once the output has reached equilibrium.</p>
+    </details>
+  </section>
+
+  <section class="panel" aria-labelledby="validation-title">
+    <h2 id="validation-title">Validation checks</h2>
+    <p class="desc">Fixed reference cases (K = 1, τ = 1 s), independent of your current sliders. The values are calculated when the checks run.</p>
+    <button class="sec" id="runChecks">Run checks again</button>
+    <p class="note" id="validationStatus" role="status">Preparing checks…</p>
+    <div class="wrap"><table><thead><tr><th scope="col">Check</th><th scope="col">Expected</th><th scope="col">Calculated</th><th scope="col">Result</th></tr></thead><tbody id="vbody"></tbody></table></div>
+  </section>
+</main>
+</body>
+</html>

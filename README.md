@@ -76,6 +76,10 @@ An interactive web toolkit for exploring sensor dynamic characteristics, develop
 - Explaining the PID, slow-sensor feedback, and RK4 equations
 - Helping debug and test the live plots, prediction questions, and validation checks
 
+**P3:**
+
+- Used AI to review the digital PID simulation, sampling and anti-windup demos, generated Arduino loop, and homework validation checks.
+
 ## Modules Screenshots
 
 ### Module 1:

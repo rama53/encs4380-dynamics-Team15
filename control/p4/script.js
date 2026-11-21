@@ -156,9 +156,33 @@ $("submit").addEventListener("click",()=>{
   $("avg").textContent=Math.round(hist.reduce((a,h)=>a+h.score,0)/hist.length)+" / 100 over "+hist.length+" plant"+(hist.length>1?"s":"");
 });
 
+/* ---- Predict, then check ---- */
+const QS=[
+ {q:"The output settles below the setpoint, so the steady-state error part fails. Which gain should you raise?",o:["Kp","Ki","Kd"],a:1,
+  e:"The integral keeps adding up the error until it is zero. Kp only makes the error smaller, and Kd does nothing once the output is steady."},
+ {q:"The overshoot is 25% but the spec allows 10%. Which change usually brings it down without making the response much slower?",o:["Raise Kd","Raise Ki","Raise Kp"],a:0,
+  e:"Derivative reacts to how fast the error is changing, so it brakes the output as it approaches the setpoint. Raising Ki or Kp usually adds overshoot."},
+ {q:"You keep raising Kp to settle faster, and u starts hitting the ±100 limit. What happens to the settling time?",o:["It keeps getting shorter","It stops improving, because the actuator cannot push harder","It becomes zero"],a:1,
+  e:"Once u is saturated, the plant gets the same maximum input whatever the gains say, so the response cannot get faster. Watch the peak |u| note under the plot."}
+];
+let qi=0;
+function predict(){
+  const p=QS[qi];
+  $("pQn").textContent="Question "+(qi+1)+" of "+QS.length;$("pQ").textContent=p.q;$("pResult").textContent="";
+  $("pOpts").innerHTML=p.o.map((o,i)=>`<label><input type="radio" name="pred" value="${i}"> ${o}</label>`).join("");
+  $("pGo").disabled=false;$("pNext").hidden=true;
+}
+$("pGo").addEventListener("click",()=>{
+  const p=QS[qi],sel=document.querySelector("input[name=pred]:checked");
+  if(!sel){$("pResult").textContent="Pick an answer first.";return}
+  $("pResult").textContent=(+sel.value===p.a?"Correct. ":"Not quite. ")+p.e+" Now try it with the sliders.";
+  document.querySelectorAll("input[name=pred]").forEach(r=>r.disabled=true);
+  $("pGo").disabled=true;$("pNext").hidden=false;
+});
+$("pNext").addEventListener("click",()=>{qi=(qi+1)%QS.length;predict()});
 
 /* ---- wiring ---- */
 Object.keys(SL).forEach(id=>$(id).addEventListener("input",draw));
 window.addEventListener("resize",draw);
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change",draw);
-start(false);
+predict();start(false);

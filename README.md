@@ -80,6 +80,17 @@ An interactive web toolkit for exploring sensor dynamic characteristics, develop
 
 - Used AI to review the digital PID simulation, sampling and anti-windup demos, generated Arduino loop, and homework validation checks.
 
+**P4:**
+
+- Helping write the HTML, CSS and JavaScript code, reusing P1's simulation and Module 4's random ranges
+- Explaining the PID effects, RK4 and the response metrics
+- Helping test the random plants, the spec checks and the scoring
+
+**My system:**
+
+- Helping write the page and the Arduino code generator
+- Explaining the PI design equations, the choice of ζ, and how to measure K and τ with a PWM step test
+
 ## Modules Screenshots
 
 ### Module 1:

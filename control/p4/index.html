@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Tune a PID controller for a hidden random plant until it meets the spec. Pass or fail on each part, and a score.">
+<title>P4: Tuning challenge</title>
+  <link rel="stylesheet" href="../../assets/site.css">
+  <link rel="stylesheet" href="styles.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+<nav class="site-nav" aria-label="Main navigation"><a href="../../">Home</a><a href="../../module1/">Module 1</a><a href="../../module2/">Module 2</a><a href="../../module3/">Module 3</a><a href="../../module4/">Module 4</a><a href="../" aria-current="page">Control</a></nav>
+<main>
+  <h1>P4: Tuning challenge</h1>
+  <p class="sub">A random plant is hidden from you, like the sensors in Module 4. Tune Kp, Ki and Kd until the closed loop meets every part of the spec, then submit your gains for a score. The loop is stepped in time with RK4, the setpoint is r = 1, the control signal is limited to ±100, and anti-windup is on. <span class="formula">u = Kp·e + Ki∫e dt + Kd·de/dt</span></p>
+  <p class="links"><b>Control toolkit:</b><a href="../">P1 Playground</a><a href="../p2/">P2 Slow sensor</a><a href="../p3/">P3 Digital PID</a><a href="./" aria-current="page">P4 Tuning challenge</a><a href="../my-system.html">My system</a></p>
+  <noscript><p class="panel">Enable JavaScript to run the simulation and use the controls.</p></noscript>
+
+  <div class="panel">
+    <h2>The challenge <span class="tag" id="ptag"></span></h2>
+    <p class="desc" id="pdesc"></p>
+    <div class="spec" id="spec"></div>
+    <div class="row" style="margin-top:14px">
+      <button class="sec" id="newPlant">New hidden plant</button>
+      <button class="sec" id="practice">Practice plant (K = 1, τ = 1 s, shown)</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Your gains</h2>
+    <p class="desc">Tip: start with P only, add I to remove the steady-state error, then add D if it overshoots.</p>
+    <div class="sliders" id="ctlsl"></div>
+    <p class="warn" id="warn" aria-live="polite"></p>
+  </div>
+
+  <div class="panel">
+    <h2>Output vs setpoint</h2>
+    <p class="desc">The shaded band is ±2% around the setpoint. The dashed line above it is the overshoot limit, and the vertical line is the settling-time limit. To pass, the curve must stay under the overshoot line and be inside the band before the vertical line.</p>
+    <canvas id="c1" role="img" aria-label="Closed-loop output with the spec limits drawn on the plot"></canvas>
+    <div class="legend"><span><i style="background:var(--curve)"></i>Output y(t)</span><span><i style="background:var(--muted)"></i>Setpoint r</span><span><i style="background:var(--mark)"></i>Overshoot limit</span><span><i style="background:var(--mark2)"></i>Settling-time limit and ±2% band</span></div>
+    <p class="note" id="mnote"></p>
+  </div>
+
+  <div class="panel">
+    <h2>Pass or fail</h2>
+    <p class="desc">These update live while you move the sliders.</p>
+    <div class="wrap"><table>
+      <thead><tr><th>Part of the spec</th><th>Target</th><th>Your value</th><th>Points</th><th>Result</th></tr></thead>
+      <tbody id="sbody"></tbody>
+    </table></div>
+    <div class="row" style="margin-top:14px;align-items:center">
+      <button class="go" id="submit">Submit these gains</button>
+      <span>This plant: <b id="now">0</b> / 100</span>
+    </div>
+    <p id="reveal" aria-live="polite" style="font-weight:600;margin:12px 0 0"></p>
+  </div>
+
+  <div class="panel">
+    <h2>Score</h2>
+    <p class="desc">Each hidden plant can be submitted once. Your total is the average over all the plants you submitted.</p>
+    <div class="score" id="avg">—</div>
+    <div class="wrap"><table>
+      <thead><tr><th>#</th><th>Plant</th><th>Kp, Ki, Kd</th><th>Parts passed</th><th>Score</th></tr></thead>
+      <tbody id="hist"></tbody>
+    </table></div>
+  </div>
+
+  <div class="panel" id="predict">
+    <h2>Predict, then check</h2>
+    <p class="desc">Answer before you move a slider, then try it on the current plant and see if you were right.</p>
+    <p class="desc" id="pQn"></p>
+    <p id="pQ" style="font-weight:600;margin:6px 0"></p>
+    <div class="opts" id="pOpts" role="radiogroup" aria-labelledby="pQ"></div>
+    <div class="row">
+      <button class="go" id="pGo">Check my prediction</button>
+      <button class="sec" id="pNext" hidden>Next question</button>
+    </div>
+    <p id="pResult" aria-live="polite"></p>
+  </div>
+</main>
+</body>
+</html>
